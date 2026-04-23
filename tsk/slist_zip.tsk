@@ -1,0 +1,36 @@
+Zip two Scott lists with function F.
+[A,B,C] zip [X,Y,Z] = [F(A,X), F(B,Y), F(C,Z)].
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+λC.λA.λB.@main(C, λc.λn.c(A, λc.λn.n), λc.λn.c(B, λc.λn.n))
+= λa.λb.λc.λd.λe.d(a(b, c), λf.λg.g)
+
+λE.λA.λB.λC.λD.@main(E, λc.λn.c(A, λc.λn.c(B, λc.λn.n)), λc.λn.c(C, λc.λn.c(D, λc.λn.n)))
+= λa.λb.λc.λd.λe.λf.λg.f(a(b, d), λh.λi.h(a(c, e), λj.λk.k))
+
+λG.λA.λB.λC.λD.λE.λF.@main(G, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))), λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(a(b, e), λj.λk.j(a(c, f), λl.λm.l(a(d, g), λn.λo.o)))
+
+λI.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))), λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.c(H, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(a(b, f), λl.λm.l(a(c, g), λn.λo.n(a(d, h), λp.λq.p(a(e, i), λr.λs.s))))
+
+λK.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.@main(K, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.n))))), λc.λn.c(F, λc.λn.c(G, λc.λn.c(H, λc.λn.c(I, λc.λn.c(J, λc.λn.n))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.l(a(b, g), λn.λo.n(a(c, h), λp.λq.p(a(d, i), λr.λs.r(a(e, j), λt.λu.t(a(f, k), λv.λw.w)))))
+
+λM.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.@main(M, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n)))))), λc.λn.c(G, λc.λn.c(H, λc.λn.c(I, λc.λn.c(J, λc.λn.c(K, λc.λn.c(L, λc.λn.n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.n(a(b, h), λp.λq.p(a(c, i), λr.λs.r(a(d, j), λt.λu.t(a(e, k), λv.λw.v(a(f, l), λx.λy.x(a(g, m), λz.λaa.aa))))))
+
+λO.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.@main(O, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.n))))))), λc.λn.c(H, λc.λn.c(I, λc.λn.c(J, λc.λn.c(K, λc.λn.c(L, λc.λn.c(M, λc.λn.c(N, λc.λn.n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.p(a(b, i), λr.λs.r(a(c, j), λt.λu.t(a(d, k), λv.λw.v(a(e, l), λx.λy.x(a(f, m), λz.λaa.z(a(g, n), λab.λac.ab(a(h, o), λad.λae.ae)))))))
+
+λE.λA.λB.λC.λD.@main(E, λc.λn.c(A, λc.λn.c(B, λc.λn.n)), λc.λn.c(C, λc.λn.c(D, λc.λn.n)))
+= λa.λb.λc.λd.λe.λf.λg.f(a(b, d), λh.λi.h(a(c, e), λj.λk.k))
+
+λG.λA.λB.λC.λD.λE.λF.@main(G, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))), λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(a(b, e), λj.λk.j(a(c, f), λl.λm.l(a(d, g), λn.λo.o)))
+
+λI.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))), λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.c(H, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(a(b, f), λl.λm.l(a(c, g), λn.λo.n(a(d, h), λp.λq.p(a(e, i), λr.λs.s))))

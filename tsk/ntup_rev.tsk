@@ -1,0 +1,37 @@
+Reverse an N-tuple. (A,B,C) becomes (C,B,A).
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+---
+
+λA.@main(λf.λx.f(x), λt.t(A))
+= λa.λb.b(a)
+
+λA.λB.@main(λf.λx.f(f(x)), λt.t(A,B))
+= λa.λb.λc.c(b, a)
+
+λA.λB.λC.@main(λf.λx.f(f(f(x))), λt.t(A,B,C))
+= λa.λb.λc.λd.d(c, b, a)
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), λt.t(A,B,C,D))
+= λa.λb.λc.λd.λe.e(d, c, b, a)
+
+λA.λB.λC.λD.λE.@main(λf.λx.f(f(f(f(f(x))))), λt.t(A,B,C,D,E))
+= λa.λb.λc.λd.λe.λf.f(e, d, c, b, a)
+
+λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(f(f(f(x)))))), λt.t(A,B,C,D,E,F))
+= λa.λb.λc.λd.λe.λf.λg.g(f, e, d, c, b, a)
+
+λA.λB.λC.λD.λE.λF.λG.@main(λf.λx.f(f(f(f(f(f(f(x))))))), λt.t(A,B,C,D,E,F,G))
+= λa.λb.λc.λd.λe.λf.λg.λh.h(g, f, e, d, c, b, a)
+
+λA.λB.@main(λf.λx.f(f(x)), λt.t(A,B))
+= λa.λb.λc.c(b, a)
+
+λA.λB.λC.@main(λf.λx.f(f(f(x))), λt.t(A,B,C))
+= λa.λb.λc.λd.d(c, b, a)
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), λt.t(A,B,C,D))
+= λa.λb.λc.λd.λe.e(d, c, b, a)

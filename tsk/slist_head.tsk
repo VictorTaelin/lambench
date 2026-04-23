@@ -1,0 +1,35 @@
+Return the first element of a Scott list.
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+λA.@main(λc.λn.c(A, λc.λn.n))
+= λa.a
+
+λA.λB.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.n)))
+= λa.λb.a
+
+λA.λB.λC.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.a
+
+λA.λB.λC.λD.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.a
+
+λA.λB.λC.λD.λE.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.n))))))
+= λa.λb.λc.λd.λe.a
+
+λA.λB.λC.λD.λE.λF.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n)))))))
+= λa.λb.λc.λd.λe.λf.a
+
+λA.λB.λC.λD.λE.λF.λG.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.n))))))))
+= λa.λb.λc.λd.λe.λf.λg.a
+
+λA.λB.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.n)))
+= λa.λb.a
+
+λA.λB.λC.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.a
+
+λA.λB.λC.λD.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.a

@@ -1,0 +1,35 @@
+Modulo of two Scott nats. Return A mod B.
+
+A Scott nat: Z = λs.λz.z, S(n) = λs.λz.s(n).
+
+---
+
+@main(λs.λz.z, λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.a(λc.λd.d)
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.a(λc.λd.d)
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a(λc.λd.c(λe.λf.f))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.h)))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.z), λs.λz.s(λs.λz.z))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a(λc.λd.d)

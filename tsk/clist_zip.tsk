@@ -1,0 +1,39 @@
+Zip two Church lists with function F.
+[A,B,C] zip [X,Y,Z] = [F(A,X), F(B,Y), F(C,Z)].
+
+A Church list folds over its elements:
+  Nil       = λc.λn.n
+  Cons(h,t) = λc.λn.c(h, t(c,n))
+So [A,B,C] = λc.λn.c(A, c(B, c(C, n))).
+
+---
+
+λC.λA.λB.@main(C, λc.λn.c(A, n), λc.λn.c(B, n))
+= λa.λb.λc.λd.λe.d(a(b, c), e)
+
+λE.λA.λB.λC.λD.@main(E, λc.λn.c(A, c(B, n)), λc.λn.c(C, c(D, n)))
+= λa.λb.λc.λd.λe.λf.λg.f(a(b, d), f(a(c, e), g))
+
+λG.λA.λB.λC.λD.λE.λF.@main(G, λc.λn.c(A, c(B, c(C, n))), λc.λn.c(D, c(E, c(F, n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(a(b, e), h(a(c, f), h(a(d, g), i)))
+
+λI.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, λc.λn.c(A, c(B, c(C, c(D, n)))), λc.λn.c(E, c(F, c(G, c(H, n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(a(b, f), j(a(c, g), j(a(d, h), j(a(e, i), k))))
+
+λK.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.@main(K, λc.λn.c(A, c(B, c(C, c(D, c(E, n))))), λc.λn.c(F, c(G, c(H, c(I, c(J, n))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.l(a(b, g), l(a(c, h), l(a(d, i), l(a(e, j), l(a(f, k), m)))))
+
+λM.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.@main(M, λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, n)))))), λc.λn.c(G, c(H, c(I, c(J, c(K, c(L, n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.n(a(b, h), n(a(c, i), n(a(d, j), n(a(e, k), n(a(f, l), n(a(g, m), o))))))
+
+λO.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.@main(O, λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, c(G, n))))))), λc.λn.c(H, c(I, c(J, c(K, c(L, c(M, c(N, n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.p(a(b, i), p(a(c, j), p(a(d, k), p(a(e, l), p(a(f, m), p(a(g, n), p(a(h, o), q)))))))
+
+λE.λA.λB.λC.λD.@main(E, λc.λn.c(A, c(B, n)), λc.λn.c(C, c(D, n)))
+= λa.λb.λc.λd.λe.λf.λg.f(a(b, d), f(a(c, e), g))
+
+λG.λA.λB.λC.λD.λE.λF.@main(G, λc.λn.c(A, c(B, c(C, n))), λc.λn.c(D, c(E, c(F, n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(a(b, e), h(a(c, f), h(a(d, g), i)))
+
+λI.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, λc.λn.c(A, c(B, c(C, c(D, n)))), λc.λn.c(E, c(F, c(G, c(H, n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(a(b, f), j(a(c, g), j(a(d, h), j(a(e, i), k))))

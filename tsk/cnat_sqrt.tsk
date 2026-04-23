@@ -1,0 +1,38 @@
+Integer square root of a Church nat. floor(√N).
+
+A Church nat:
+  0 = λf.λx.x
+  1 = λf.λx.f(x)
+  2 = λf.λx.f(f(x))
+
+---
+
+@main(λf.λx.x)
+= λa.λb.b
+
+@main(λf.λx.f(x))
+= λa.λb.a(b)
+
+@main(λf.λx.f(f(x)))
+= λa.λb.a(b)
+
+@main(λf.λx.f(f(f(x))))
+= λa.λb.a(b)
+
+@main(λf.λx.f(f(f(f(x)))))
+= λa.λb.a(a(b))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(x)))))))))
+= λa.λb.a(a(b))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(x))))))))))
+= λa.λb.a(a(a(b)))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(f(x)))))))))))
+= λa.λb.a(a(a(b)))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(x))))))))))))))))
+= λa.λb.a(a(a(b)))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(x)))))))))))))))))
+= λa.λb.a(a(a(a(b))))

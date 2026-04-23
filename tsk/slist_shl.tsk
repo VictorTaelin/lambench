@@ -1,0 +1,35 @@
+Rotate a Scott list left by one. [A,B,C]→[B,C,A].
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+λA.@main(λc.λn.c(A, λc.λn.n))
+= λa.λb.λc.b(a, λd.λe.e)
+
+λA.λB.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.n)))
+= λa.λb.λc.λd.c(b, λe.λf.e(a, λg.λh.h))
+
+λA.λB.λC.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.λd.λe.d(b, λf.λg.f(c, λh.λi.h(a, λj.λk.k)))
+
+λA.λB.λC.λD.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.e(b, λg.λh.g(c, λi.λj.i(d, λk.λl.k(a, λm.λn.n))))
+
+λA.λB.λC.λD.λE.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.n))))))
+= λa.λb.λc.λd.λe.λf.λg.f(b, λh.λi.h(c, λj.λk.j(d, λl.λm.l(e, λn.λo.n(a, λp.λq.q)))))
+
+λA.λB.λC.λD.λE.λF.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(b, λi.λj.i(c, λk.λl.k(d, λm.λn.m(e, λo.λp.o(f, λq.λr.q(a, λs.λt.t))))))
+
+λA.λB.λC.λD.λE.λF.λG.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(b, λj.λk.j(c, λl.λm.l(d, λn.λo.n(e, λp.λq.p(f, λr.λs.r(g, λt.λu.t(a, λv.λw.w)))))))
+
+λA.λB.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.n)))
+= λa.λb.λc.λd.c(b, λe.λf.e(a, λg.λh.h))
+
+λA.λB.λC.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.λd.λe.d(b, λf.λg.f(c, λh.λi.h(a, λj.λk.k)))
+
+λA.λB.λC.λD.@main(λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.e(b, λg.λh.g(c, λi.λj.i(d, λk.λl.k(a, λm.λn.n))))

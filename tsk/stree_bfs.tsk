@@ -1,0 +1,43 @@
+Flatten a Scott tree into a Scott list in
+breadth-first order. Shallowest leaves first,
+left-to-right within each depth.
+
+Node(Node(Leaf(A), Leaf(B)), Leaf(C)) → [C, A, B]
+
+A Scott tree:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a,b)
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.b(a, λd.λe.e)
+
+λA.λB.@main(λn.λl.n(λn.λl.l(A), λn.λl.l(B)))
+= λa.λb.λc.λd.c(a, λe.λf.e(b, λg.λh.h))
+
+λA.λB.λC.@main(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.l(C)))
+= λa.λb.λc.λd.λe.d(c, λf.λg.f(a, λh.λi.h(b, λj.λk.k)))
+
+λA.λB.λC.@main(λn.λl.n(λn.λl.l(A), λn.λl.n(λn.λl.l(B), λn.λl.l(C))))
+= λa.λb.λc.λd.λe.d(a, λf.λg.f(b, λh.λi.h(c, λj.λk.k)))
+
+λA.λB.λC.λD.@main(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.l(C)), λn.λl.l(D)))
+= λa.λb.λc.λd.λe.λf.e(d, λg.λh.g(c, λi.λj.i(a, λk.λl.k(b, λm.λn.n))))
+
+λA.λB.λC.λD.@main(λn.λl.n(λn.λl.l(A), λn.λl.n(λn.λl.l(B), λn.λl.n(λn.λl.l(C), λn.λl.l(D)))))
+= λa.λb.λc.λd.λe.λf.e(a, λg.λh.g(b, λi.λj.i(c, λk.λl.k(d, λm.λn.n))))
+
+λA.λB.λC.λD.λE.@main(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.n(λn.λl.l(B), λn.λl.l(C))), λn.λl.n(λn.λl.l(D), λn.λl.l(E))))
+= λa.λb.λc.λd.λe.λf.λg.f(a, λh.λi.h(d, λj.λk.j(e, λl.λm.l(b, λn.λo.n(c, λp.λq.q)))))
+
+λA.λB.λC.λD.λE.λF.λG.@main(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))), λn.λl.n(λn.λl.l(E), λn.λl.n(λn.λl.l(F), λn.λl.l(G)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(e, λj.λk.j(a, λl.λm.l(b, λn.λo.n(c, λp.λq.p(d, λr.λs.r(f, λt.λu.t(g, λv.λw.w)))))))
+
+λA.λB.λC.λD.λE.@main(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.n(λn.λl.l(C), λn.λl.l(D)), λn.λl.l(E))))
+= λa.λb.λc.λd.λe.λf.λg.f(a, λh.λi.h(b, λj.λk.j(e, λl.λm.l(c, λn.λo.n(d, λp.λq.q)))))
+
+λA.λB.λC.λD.λE.λF.@main(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.l(C)), λn.λl.n(λn.λl.l(D), λn.λl.n(λn.λl.l(E), λn.λl.l(F)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(c, λi.λj.i(d, λk.λl.k(a, λm.λn.m(b, λo.λp.o(e, λq.λr.q(f, λs.λt.t))))))

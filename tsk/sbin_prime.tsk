@@ -1,0 +1,42 @@
+Primality test on a Scott binary number.
+Return True if prime, False otherwise.
+
+A Scott binary natural (LSB first, no trailing zeros):
+  E    = λo.λi.λe.e
+  O(x) = λo.λi.λe.o(x)
+  I(x) = λo.λi.λe.i(x)
+0=E, 1=I(E), 2=O(I(E)), 3=I(I(E)), 5=I(O(I(E))).
+
+Church booleans: True = λa.λb.a, False = λa.λb.b.
+
+---
+
+@main(λo.λi.λe.e)
+= λa.λb.b
+
+@main(λo.λi.λe.i(λo.λi.λe.e))
+= λa.λb.b
+
+@main(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.a
+
+@main(λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.a
+
+@main(λo.λi.λe.o(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e))))
+= λa.λb.b
+
+@main(λo.λi.λe.i(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e))))
+= λa.λb.a
+
+@main(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e))))
+= λa.λb.b
+
+@main(λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e))))
+= λa.λb.a
+
+@main(λo.λi.λe.o(λo.λi.λe.o(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e)))))
+= λa.λb.b
+
+@main(λo.λi.λe.i(λo.λi.λe.o(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e)))))
+= λa.λb.b

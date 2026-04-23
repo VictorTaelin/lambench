@@ -1,0 +1,38 @@
+Dot product of two Scott lists.
+
+Given add A, mul M, zero Z, and [a1..aN], [x1..xN]:
+  A(M(a1,x1), A(M(a2,x2), ...A(M(aN,xN), Z)...))
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+λC.λD.λE.λA.λB.@main(C, D, E, λc.λn.c(A, λc.λn.n), λc.λn.c(B, λc.λn.n))
+= λa.λb.λc.λd.λe.a(b(d, e), c)
+
+λE.λF.λG.λA.λB.λC.λD.@main(E, F, G, λc.λn.c(A, λc.λn.c(B, λc.λn.n)), λc.λn.c(C, λc.λn.c(D, λc.λn.n)))
+= λa.λb.λc.λd.λe.λf.λg.a(b(d, f), a(b(e, g), c))
+
+λG.λH.λI.λA.λB.λC.λD.λE.λF.@main(G, H, I, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))), λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(b(d, g), a(b(e, h), a(b(f, i), c)))
+
+λI.λJ.λK.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, J, K, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))), λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.c(H, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.a(b(d, h), a(b(e, i), a(b(f, j), a(b(g, k), c))))
+
+λK.λL.λM.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.@main(K, L, M, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.n))))), λc.λn.c(F, λc.λn.c(G, λc.λn.c(H, λc.λn.c(I, λc.λn.c(J, λc.λn.n))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.a(b(d, i), a(b(e, j), a(b(f, k), a(b(g, l), a(b(h, m), c)))))
+
+λM.λN.λO.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.@main(M, N, O, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n)))))), λc.λn.c(G, λc.λn.c(H, λc.λn.c(I, λc.λn.c(J, λc.λn.c(K, λc.λn.c(L, λc.λn.n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.a(b(d, j), a(b(e, k), a(b(f, l), a(b(g, m), a(b(h, n), a(b(i, o), c))))))
+
+λO.λP.λQ.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.@main(O, P, Q, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.n))))))), λc.λn.c(H, λc.λn.c(I, λc.λn.c(J, λc.λn.c(K, λc.λn.c(L, λc.λn.c(M, λc.λn.c(N, λc.λn.n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.a(b(d, k), a(b(e, l), a(b(f, m), a(b(g, n), a(b(h, o), a(b(i, p), a(b(j, q), c)))))))
+
+λE.λF.λG.λA.λB.λC.λD.@main(E, F, G, λc.λn.c(A, λc.λn.c(B, λc.λn.n)), λc.λn.c(C, λc.λn.c(D, λc.λn.n)))
+= λa.λb.λc.λd.λe.λf.λg.a(b(d, f), a(b(e, g), c))
+
+λG.λH.λI.λA.λB.λC.λD.λE.λF.@main(G, H, I, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))), λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(b(d, g), a(b(e, h), a(b(f, i), c)))
+
+λI.λJ.λK.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, J, K, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))), λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.c(H, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.a(b(d, h), a(b(e, i), a(b(f, j), a(b(g, k), c))))

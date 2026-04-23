@@ -1,0 +1,37 @@
+Apply function F to every element of an N-tuple.
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+---
+
+λB.λA.@main(B, λf.λx.f(x), λt.t(A))
+= λa.λb.λc.c(a(b))
+
+λC.λA.λB.@main(C, λf.λx.f(f(x)), λt.t(A,B))
+= λa.λb.λc.λd.d(a(b), a(c))
+
+λD.λA.λB.λC.@main(D, λf.λx.f(f(f(x))), λt.t(A,B,C))
+= λa.λb.λc.λd.λe.e(a(b), a(c), a(d))
+
+λE.λA.λB.λC.λD.@main(E, λf.λx.f(f(f(f(x)))), λt.t(A,B,C,D))
+= λa.λb.λc.λd.λe.λf.f(a(b), a(c), a(d), a(e))
+
+λF.λA.λB.λC.λD.λE.@main(F, λf.λx.f(f(f(f(f(x))))), λt.t(A,B,C,D,E))
+= λa.λb.λc.λd.λe.λf.λg.g(a(b), a(c), a(d), a(e), a(f))
+
+λG.λA.λB.λC.λD.λE.λF.@main(G, λf.λx.f(f(f(f(f(f(x)))))), λt.t(A,B,C,D,E,F))
+= λa.λb.λc.λd.λe.λf.λg.λh.h(a(b), a(c), a(d), a(e), a(f), a(g))
+
+λH.λA.λB.λC.λD.λE.λF.λG.@main(H, λf.λx.f(f(f(f(f(f(f(x))))))), λt.t(A,B,C,D,E,F,G))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.i(a(b), a(c), a(d), a(e), a(f), a(g), a(h))
+
+λC.λA.λB.@main(C, λf.λx.f(f(x)), λt.t(A,B))
+= λa.λb.λc.λd.d(a(b), a(c))
+
+λD.λA.λB.λC.@main(D, λf.λx.f(f(f(x))), λt.t(A,B,C))
+= λa.λb.λc.λd.λe.e(a(b), a(c), a(d))
+
+λE.λA.λB.λC.λD.@main(E, λf.λx.f(f(f(f(x)))), λt.t(A,B,C,D))
+= λa.λb.λc.λd.λe.λf.f(a(b), a(c), a(d), a(e))

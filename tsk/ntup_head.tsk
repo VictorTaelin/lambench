@@ -1,0 +1,37 @@
+Return the first element of an N-tuple.
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+---
+
+λA.@main(λf.λx.f(x), λt.t(A))
+= λa.a
+
+λA.λB.@main(λf.λx.f(f(x)), λt.t(A,B))
+= λa.λb.a
+
+λA.λB.λC.@main(λf.λx.f(f(f(x))), λt.t(A,B,C))
+= λa.λb.λc.a
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), λt.t(A,B,C,D))
+= λa.λb.λc.λd.a
+
+λA.λB.λC.λD.λE.@main(λf.λx.f(f(f(f(f(x))))), λt.t(A,B,C,D,E))
+= λa.λb.λc.λd.λe.a
+
+λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(f(f(f(x)))))), λt.t(A,B,C,D,E,F))
+= λa.λb.λc.λd.λe.λf.a
+
+λA.λB.λC.λD.λE.λF.λG.@main(λf.λx.f(f(f(f(f(f(f(x))))))), λt.t(A,B,C,D,E,F,G))
+= λa.λb.λc.λd.λe.λf.λg.a
+
+λA.λB.@main(λf.λx.f(f(x)), λt.t(A,B))
+= λa.λb.a
+
+λA.λB.λC.@main(λf.λx.f(f(f(x))), λt.t(A,B,C))
+= λa.λb.λc.a
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), λt.t(A,B,C,D))
+= λa.λb.λc.λd.a

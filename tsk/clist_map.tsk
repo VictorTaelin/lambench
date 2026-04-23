@@ -1,0 +1,38 @@
+Apply F to every element of a Church list.
+
+A Church list folds over its elements:
+  Nil       = λc.λn.n
+  Cons(h,t) = λc.λn.c(h, t(c,n))
+So [A,B,C] = λc.λn.c(A, c(B, c(C, n))).
+
+---
+
+λB.λA.@main(B, λc.λn.c(A, n))
+= λa.λb.λc.λd.c(a(b), d)
+
+λC.λA.λB.@main(C, λc.λn.c(A, c(B, n)))
+= λa.λb.λc.λd.λe.d(a(b), d(a(c), e))
+
+λD.λA.λB.λC.@main(D, λc.λn.c(A, c(B, c(C, n))))
+= λa.λb.λc.λd.λe.λf.e(a(b), e(a(c), e(a(d), f)))
+
+λE.λA.λB.λC.λD.@main(E, λc.λn.c(A, c(B, c(C, c(D, n)))))
+= λa.λb.λc.λd.λe.λf.λg.f(a(b), f(a(c), f(a(d), f(a(e), g))))
+
+λF.λA.λB.λC.λD.λE.@main(F, λc.λn.c(A, c(B, c(C, c(D, c(E, n))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(a(b), g(a(c), g(a(d), g(a(e), g(a(f), h)))))
+
+λG.λA.λB.λC.λD.λE.λF.@main(G, λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(a(b), h(a(c), h(a(d), h(a(e), h(a(f), h(a(g), i))))))
+
+λH.λA.λB.λC.λD.λE.λF.λG.@main(H, λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, c(G, n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(a(b), i(a(c), i(a(d), i(a(e), i(a(f), i(a(g), i(a(h), j)))))))
+
+λC.λA.λB.@main(C, λc.λn.c(A, c(B, n)))
+= λa.λb.λc.λd.λe.d(a(b), d(a(c), e))
+
+λD.λA.λB.λC.@main(D, λc.λn.c(A, c(B, c(C, n))))
+= λa.λb.λc.λd.λe.λf.e(a(b), e(a(c), e(a(d), f)))
+
+λE.λA.λB.λC.λD.@main(E, λc.λn.c(A, c(B, c(C, c(D, n)))))
+= λa.λb.λc.λd.λe.λf.λg.f(a(b), f(a(c), f(a(d), f(a(e), g))))

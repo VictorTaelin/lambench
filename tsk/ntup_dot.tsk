@@ -1,0 +1,41 @@
+Dot product of two N-tuples.
+
+Given add A, mul M, zero Z, and tuples (a1..aN),
+(x1..xN), return:
+  A(M(a1,x1), A(M(a2,x2), ...A(M(aN,xN), Z)...))
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+---
+
+λC.λD.λE.λA.λB.@main(λf.λx.f(x), C, D, E, λt.t(A), λt.t(B))
+= λa.λb.λc.λd.λe.a(b(d, e), c)
+
+λE.λF.λG.λA.λB.λC.λD.@main(λf.λx.f(f(x)), E, F, G, λt.t(A,B), λt.t(C,D))
+= λa.λb.λc.λd.λe.λf.λg.a(b(d, f), a(b(e, g), c))
+
+λG.λH.λI.λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(x))), G, H, I, λt.t(A,B,C), λt.t(D,E,F))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(b(d, g), a(b(e, h), a(b(f, i), c)))
+
+λI.λJ.λK.λA.λB.λC.λD.λE.λF.λG.λH.@main(λf.λx.f(f(f(f(x)))), I, J, K, λt.t(A,B,C,D), λt.t(E,F,G,H))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.a(b(d, h), a(b(e, i), a(b(f, j), a(b(g, k), c))))
+
+λK.λL.λM.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.@main(λf.λx.f(f(f(f(f(x))))), K, L, M, λt.t(A,B,C,D,E), λt.t(F,G,H,I,J))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.a(b(d, i), a(b(e, j), a(b(f, k), a(b(g, l), a(b(h, m), c)))))
+
+λM.λN.λO.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.@main(λf.λx.f(f(f(f(f(f(x)))))), M, N, O, λt.t(A,B,C,D,E,F), λt.t(G,H,I,J,K,L))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.a(b(d, j), a(b(e, k), a(b(f, l), a(b(g, m), a(b(h, n), a(b(i, o), c))))))
+
+λO.λP.λQ.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.@main(λf.λx.f(f(f(f(f(f(f(x))))))), O, P, Q, λt.t(A,B,C,D,E,F,G), λt.t(H,I,J,K,L,M,N))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.a(b(d, k), a(b(e, l), a(b(f, m), a(b(g, n), a(b(h, o), a(b(i, p), a(b(j, q), c)))))))
+
+λE.λF.λG.λA.λB.λC.λD.@main(λf.λx.f(f(x)), E, F, G, λt.t(A,B), λt.t(C,D))
+= λa.λb.λc.λd.λe.λf.λg.a(b(d, f), a(b(e, g), c))
+
+λG.λH.λI.λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(x))), G, H, I, λt.t(A,B,C), λt.t(D,E,F))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(b(d, g), a(b(e, h), a(b(f, i), c)))
+
+λI.λJ.λK.λA.λB.λC.λD.λE.λF.λG.λH.@main(λf.λx.f(f(f(f(x)))), I, J, K, λt.t(A,B,C,D), λt.t(E,F,G,H))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.a(b(d, h), a(b(e, i), a(b(f, j), a(b(g, k), c))))

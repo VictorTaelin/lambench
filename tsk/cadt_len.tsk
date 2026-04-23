@@ -1,0 +1,55 @@
+Count all constructors in a Church-encoded value,
+recursively. Each constructor counts as 1.
+
+A type descriptor is a Scott list of constructor specs.
+Each spec is a Scott list of fields.
+Each field (λx.x) marks a recursive position.
+In Haskell notation:
+  data Bit  = O | I             is [[],[]]
+  data Nat  = Z | S Nat         is [[],[⊤]]
+  data Bin  = E | O Bin | I Bin is [[],[⊤],[⊤]]
+  data Pair = A | B Pair Pair   is [[],[⊤,⊤]]
+Nat encodes as:
+  λc.λn.c(λc.λn.n,
+    λc.λn.c(λc.λn.c(λx.x, λc.λn.n),
+    λc.λn.n))
+
+A Church value folds recursive fields by applying
+them to all case-handlers:
+  Nat Z:       λz.λs.z
+  Nat S(S(Z)): λz.λs.s(s(z))
+
+A Scott nat: Z = λs.λz.z, S(n) = λs.λz.s(n).
+
+---
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.n)), λv0.λv1.v0)
+= λa.λb.a(λc.λd.d)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λv0.λv1.v0)
+= λa.λb.a(λc.λd.d)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λv0.λv1.v1((λv0.λv1.v1((λv0.λv1.v1((λv0.λv1.v0)(v0, v1)))(v0, v1)))(v0, v1)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.j))))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λv0.λv1.λv2.v0)
+= λa.λb.a(λc.λd.d)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λv0.λv1.λv2.v1((λv0.λv1.λv2.v2((λv0.λv1.λv2.v0)(v0, v1, v2)))(v0, v1, v2)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.h)))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λv0.λv1.λv2.v2((λv0.λv1.λv2.v1((λv0.λv1.λv2.v2((λv0.λv1.λv2.v0)(v0, v1, v2)))(v0, v1, v2)))(v0, v1, v2)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.j))))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λv0.λv1.v0)
+= λa.λb.a(λc.λd.d)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λv0.λv1.v1((λv0.λv1.v0)(v0, v1), (λv0.λv1.v0)(v0, v1)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.h)))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λv0.λv1.v1((λv0.λv1.v1((λv0.λv1.v0)(v0, v1), (λv0.λv1.v0)(v0, v1)))(v0, v1), (λv0.λv1.v1((λv0.λv1.v0)(v0, v1), (λv0.λv1.v0)(v0, v1)))(v0, v1)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.i(λk.λl.k(λm.λn.m(λo.λp.p)))))))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n))), λv0.λv1.λv2.v2((λv0.λv1.λv2.v2((λv0.λv1.λv2.v0)(v0, v1, v2), (λv0.λv1.λv2.v1)(v0, v1, v2)))(v0, v1, v2), (λv0.λv1.λv2.v2((λv0.λv1.λv2.v1)(v0, v1, v2), (λv0.λv1.λv2.v0)(v0, v1, v2)))(v0, v1, v2)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.i(λk.λl.k(λm.λn.m(λo.λp.p)))))))
+

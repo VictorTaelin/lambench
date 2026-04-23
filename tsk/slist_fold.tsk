@@ -1,0 +1,36 @@
+Right-fold a Scott list.
+Given F, Z, and [A,B,C], return F(A, F(B, F(C, Z))).
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+λB.λC.λA.@main(B, C, λc.λn.c(A, λc.λn.n))
+= λa.λb.λc.a(c, b)
+
+λC.λD.λA.λB.@main(C, D, λc.λn.c(A, λc.λn.c(B, λc.λn.n)))
+= λa.λb.λc.λd.a(c, a(d, b))
+
+λD.λE.λA.λB.λC.@main(D, E, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.λd.λe.a(c, a(d, a(e, b)))
+
+λE.λF.λA.λB.λC.λD.@main(E, F, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.a(c, a(d, a(e, a(f, b))))
+
+λF.λG.λA.λB.λC.λD.λE.@main(F, G, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.n))))))
+= λa.λb.λc.λd.λe.λf.λg.a(c, a(d, a(e, a(f, a(g, b)))))
+
+λG.λH.λA.λB.λC.λD.λE.λF.@main(G, H, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.a(c, a(d, a(e, a(f, a(g, a(h, b))))))
+
+λH.λI.λA.λB.λC.λD.λE.λF.λG.@main(H, I, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(c, a(d, a(e, a(f, a(g, a(h, a(i, b)))))))
+
+λC.λD.λA.λB.@main(C, D, λc.λn.c(A, λc.λn.c(B, λc.λn.n)))
+= λa.λb.λc.λd.a(c, a(d, b))
+
+λD.λE.λA.λB.λC.@main(D, E, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.λd.λe.a(c, a(d, a(e, b)))
+
+λE.λF.λA.λB.λC.λD.@main(E, F, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.λe.λf.a(c, a(d, a(e, a(f, b))))

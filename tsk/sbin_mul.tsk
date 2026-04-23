@@ -1,0 +1,39 @@
+Multiply two Scott binary numbers. A * B.
+
+A Scott binary natural (LSB first, no trailing zeros):
+  E    = λo.λi.λe.e
+  O(x) = λo.λi.λe.o(x)
+  I(x) = λo.λi.λe.i(x)
+0=E, 1=I(E), 2=O(I(E)), 3=I(I(E)), 5=I(O(I(E))).
+
+---
+
+@main(λo.λi.λe.e, λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.λc.c
+
+@main(λo.λi.λe.i(λo.λi.λe.e), λo.λi.λe.i(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e))))
+= λa.λb.λc.b(λd.λe.λf.d(λg.λh.λi.h(λj.λk.λl.l)))
+
+@main(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e)), λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.λc.a(λd.λe.λf.e(λg.λh.λi.h(λj.λk.λl.l)))
+
+@main(λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)), λo.λi.λe.o(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e))))
+= λa.λb.λc.a(λd.λe.λf.d(λg.λh.λi.h(λj.λk.λl.k(λm.λn.λo.o))))
+
+@main(λo.λi.λe.o(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e))), λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.λc.a(λd.λe.λf.d(λg.λh.λi.g(λj.λk.λl.k(λm.λn.λo.o))))
+
+@main(λo.λi.λe.i(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e))), λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.λc.b(λd.λe.λf.e(λg.λh.λi.h(λj.λk.λl.k(λm.λn.λo.o))))
+
+@main(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e)), λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e))))
+= λa.λb.λc.a(λd.λe.λf.d(λg.λh.λi.h(λj.λk.λl.k(λm.λn.λo.o))))
+
+@main(λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)), λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.λc.b(λd.λe.λf.d(λg.λh.λi.g(λj.λk.λl.k(λm.λn.λo.o))))
+
+@main(λo.λi.λe.o(λo.λi.λe.o(λo.λi.λe.i(λo.λi.λe.e))), λo.λi.λe.i(λo.λi.λe.i(λo.λi.λe.e)))
+= λa.λb.λc.a(λd.λe.λf.d(λg.λh.λi.h(λj.λk.λl.k(λm.λn.λo.o))))
+
+@main(λo.λi.λe.e, λo.λi.λe.e)
+= λa.λb.λc.c

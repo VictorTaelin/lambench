@@ -1,0 +1,56 @@
+Build the Nth constructor function for a
+Scott-encoded algebraic data type.
+
+A type descriptor is a Scott list of constructor specs.
+Each spec is a Scott list of fields.
+Each field (λx.x) marks a recursive position.
+In Haskell notation:
+  data Bit  = O | I             is [[],[]]
+  data Nat  = Z | S Nat         is [[],[⊤]]
+  data Bin  = E | O Bin | I Bin is [[],[⊤],[⊤]]
+  data Pair = A | B Pair Pair   is [[],[⊤,⊤]]
+Nat encodes as:
+  λc.λn.c(λc.λn.n,
+    λc.λn.c(λc.λn.c(λx.x, λc.λn.n),
+    λc.λn.n))
+
+A Scott value selects the ith of N case-handlers,
+applied to its fields:
+  Nat Z:    λz.λs.z
+  Nat S(n): λn.λz.λs.s(n)
+
+Index is a Scott nat:
+  Z = λs.λz.z, S(n) = λs.λz.s(n)
+
+---
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.n)), λs.λz.z)
+= λa.λb.a
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.n)), λs.λz.s(λs.λz.z))
+= λa.λb.b
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λs.λz.z)
+= λa.λb.a
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λs.λz.s(λs.λz.z))
+= λa.λb.λc.c(a)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λs.λz.z)
+= λa.λb.λc.a
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λs.λz.s(λs.λz.z))
+= λa.λb.λc.λd.c(a)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.λc.λd.d(a)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λs.λz.z)
+= λa.λb.a
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λs.λz.s(λs.λz.z))
+= λa.λb.λc.λd.d(a, b)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n))), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.λc.λd.λe.e(a, b)
+

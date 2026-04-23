@@ -1,0 +1,45 @@
+Flatten a Church tree into a Church list of its leaves,
+left to right.
+
+A Church tree folds over its structure:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a(n,l), b(n,l))
+So Node(Leaf(A), Leaf(B)) = λn.λl.n(l(A), l(B)).
+
+A Church list folds over its elements:
+  Nil       = λc.λn.n
+  Cons(h,t) = λc.λn.c(h, t(c,n))
+So [A,B,C] = λc.λn.c(A, c(B, c(C, n))).
+
+---
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.b(a, c)
+
+λA.λB.@main(λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.q(B))(n, l)))
+= λa.λb.λc.λd.c(a, c(b, d))
+
+λA.λB.λC.@main(λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.q(C))(n, l)))
+= λa.λb.λc.λd.λe.d(a, d(b, d(c, e)))
+
+λA.λB.λC.@main(λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.p((λr.λs.s(B))(p, q), (λr.λs.s(C))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.d(a, d(b, d(c, e)))
+
+λA.λB.λC.λD.@main(λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.e(a, e(b, e(c, e(d, f))))
+
+λA.λB.λC.λD.λE.@main(λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.p((λr.λs.s(D))(p, q), (λr.λs.s(E))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.f(a, f(b, f(c, f(d, f(e, g)))))
+
+λA.λB.λC.λD.λE.λG.@main(λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.s(E))(p, q), (λr.λs.s(G))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(a, g(b, g(c, g(d, g(e, g(f, h))))))
+
+λA.λB.λC.λD.λE.λG.λH.@main(λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.r((λu.λv.v(E))(r, s), (λu.λv.v(G))(r, s)))(p, q), (λr.λs.s(H))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(a, h(b, h(c, h(d, h(e, h(f, h(g, i)))))))
+
+λA.λB.λC.λD.@main(λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.e(a, e(b, e(c, e(d, f))))
+
+λA.λB.λC.λD.@main(λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.q(D))(n, l)))
+= λa.λb.λc.λd.λe.λf.e(a, e(b, e(c, e(d, f))))
+

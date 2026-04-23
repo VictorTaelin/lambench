@@ -1,0 +1,37 @@
+Floor logarithm of two Scott nats.
+Given N and base B (B ≥ 2, N ≥ 1),
+return floor(log_B(N)).
+
+A Scott nat: Z = λs.λz.z, S(n) = λs.λz.s(n).
+
+---
+
+@main(λs.λz.s(λs.λz.z), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.a(λc.λd.c(λe.λf.f))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.h)))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a(λc.λd.c(λe.λf.f))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a(λc.λd.d)
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))))))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))
+= λa.λb.a(λc.λd.c(λe.λf.f))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))
+= λa.λb.a(λc.λd.d)
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a(λc.λd.d)
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))))))))), λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.h)))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))))), λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a(λc.λd.c(λe.λf.f))

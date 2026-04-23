@@ -1,0 +1,41 @@
+Dot product of two Church lists.
+
+Given add A, mul M, zero Z, and [a1..aN], [x1..xN]:
+  A(M(a1,x1), A(M(a2,x2), ...A(M(aN,xN), Z)...))
+
+A Church list folds over its elements:
+  Nil       = λc.λn.n
+  Cons(h,t) = λc.λn.c(h, t(c,n))
+So [A,B,C] = λc.λn.c(A, c(B, c(C, n))).
+
+---
+
+λC.λD.λE.λA.λB.@main(C, D, E, λc.λn.c(A, n), λc.λn.c(B, n))
+= λa.λb.λc.λd.λe.a(b(d, e), c)
+
+λE.λF.λG.λA.λB.λC.λD.@main(E, F, G, λc.λn.c(A, c(B, n)), λc.λn.c(C, c(D, n)))
+= λa.λb.λc.λd.λe.λf.λg.a(b(d, f), a(b(e, g), c))
+
+λG.λH.λI.λA.λB.λC.λD.λE.λF.@main(G, H, I, λc.λn.c(A, c(B, c(C, n))), λc.λn.c(D, c(E, c(F, n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(b(d, g), a(b(e, h), a(b(f, i), c)))
+
+λI.λJ.λK.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, J, K, λc.λn.c(A, c(B, c(C, c(D, n)))), λc.λn.c(E, c(F, c(G, c(H, n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.a(b(d, h), a(b(e, i), a(b(f, j), a(b(g, k), c))))
+
+λK.λL.λM.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.@main(K, L, M, λc.λn.c(A, c(B, c(C, c(D, c(E, n))))), λc.λn.c(F, c(G, c(H, c(I, c(J, n))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.a(b(d, i), a(b(e, j), a(b(f, k), a(b(g, l), a(b(h, m), c)))))
+
+λM.λN.λO.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.@main(M, N, O, λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, n)))))), λc.λn.c(G, c(H, c(I, c(J, c(K, c(L, n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.a(b(d, j), a(b(e, k), a(b(f, l), a(b(g, m), a(b(h, n), a(b(i, o), c))))))
+
+λO.λP.λQ.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.@main(O, P, Q, λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, c(G, n))))))), λc.λn.c(H, c(I, c(J, c(K, c(L, c(M, c(N, n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.a(b(d, k), a(b(e, l), a(b(f, m), a(b(g, n), a(b(h, o), a(b(i, p), a(b(j, q), c)))))))
+
+λE.λF.λG.λA.λB.λC.λD.@main(E, F, G, λc.λn.c(A, c(B, n)), λc.λn.c(C, c(D, n)))
+= λa.λb.λc.λd.λe.λf.λg.a(b(d, f), a(b(e, g), c))
+
+λG.λH.λI.λA.λB.λC.λD.λE.λF.@main(G, H, I, λc.λn.c(A, c(B, c(C, n))), λc.λn.c(D, c(E, c(F, n))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(b(d, g), a(b(e, h), a(b(f, i), c)))
+
+λI.λJ.λK.λA.λB.λC.λD.λE.λF.λG.λH.@main(I, J, K, λc.λn.c(A, c(B, c(C, c(D, n)))), λc.λn.c(E, c(F, c(G, c(H, n)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.a(b(d, h), a(b(e, i), a(b(f, j), a(b(g, k), c))))

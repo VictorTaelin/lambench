@@ -1,0 +1,42 @@
+Exclusive prefix scan over a Scott tree's leaves,
+preserving shape. Each leaf_i becomes the fold of
+all leaves before it.
+
+scan(F, Z, Node(Leaf(A), Leaf(B)))
+  = Node(Leaf(Z), Leaf(F(Z,A)))
+
+A Scott tree:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a,b)
+
+---
+
+λF.λZ.λA.@main(F, Z, λn.λl.l(A))
+= λa.λb.λc.λd.λe.e(b)
+
+λF.λZ.λA.λB.@main(F, Z, λn.λl.n(λn.λl.l(A), λn.λl.l(B)))
+= λa.λb.λc.λd.λe.λf.e(λg.λh.h(b), λg.λh.h(a(b, c)))
+
+λF.λZ.λA.λB.λC.@main(F, Z, λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.l(C)))
+= λa.λb.λc.λd.λe.λf.λg.f(λh.λi.h(λj.λk.k(b), λj.λk.k(a(b, c))), λh.λi.i(a(a(b, c), d)))
+
+λF.λZ.λA.λB.λC.@main(F, Z, λn.λl.n(λn.λl.l(A), λn.λl.n(λn.λl.l(B), λn.λl.l(C))))
+= λa.λb.λc.λd.λe.λf.λg.f(λh.λi.i(b), λh.λi.h(λj.λk.k(a(b, c)), λj.λk.k(a(a(b, c), d))))
+
+λF.λZ.λA.λB.λC.λD.@main(F, Z, λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(λi.λj.i(λk.λl.l(b), λk.λl.l(a(b, c))), λi.λj.i(λk.λl.l(a(a(b, c), d)), λk.λl.l(a(a(a(b, c), d), e))))
+
+λF.λZ.λA.λB.λC.λD.λE.@main(F, Z, λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.l(C)), λn.λl.n(λn.λl.l(D), λn.λl.l(E))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(λj.λk.j(λl.λm.l(λn.λo.o(b), λn.λo.o(a(b, c))), λl.λm.m(a(a(b, c), d))), λj.λk.j(λl.λm.m(a(a(a(b, c), d), e)), λl.λm.m(a(a(a(a(b, c), d), e), f))))
+
+λF.λZ.λA.λB.λC.λD.λE.λG.@main(F, Z, λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))), λn.λl.n(λn.λl.l(E), λn.λl.l(G))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(λk.λl.k(λm.λn.m(λo.λp.p(b), λo.λp.p(a(b, c))), λm.λn.m(λo.λp.p(a(a(b, c), d)), λo.λp.p(a(a(a(b, c), d), e)))), λk.λl.k(λm.λn.n(a(a(a(a(b, c), d), e), f)), λm.λn.n(a(a(a(a(a(b, c), d), e), f), g))))
+
+λF.λZ.λA.λB.λC.λD.λE.λG.λH.@main(F, Z, λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))), λn.λl.n(λn.λl.n(λn.λl.l(E), λn.λl.l(G)), λn.λl.l(H))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(λl.λm.l(λn.λo.n(λp.λq.q(b), λp.λq.q(a(b, c))), λn.λo.n(λp.λq.q(a(a(b, c), d)), λp.λq.q(a(a(a(b, c), d), e)))), λl.λm.l(λn.λo.n(λp.λq.q(a(a(a(a(b, c), d), e), f)), λp.λq.q(a(a(a(a(a(b, c), d), e), f), g))), λn.λo.o(a(a(a(a(a(a(b, c), d), e), f), g), h))))
+
+λF.λZ.λA.λB.λC.λD.@main(F, Z, λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(λi.λj.i(λk.λl.l(b), λk.λl.l(a(b, c))), λi.λj.i(λk.λl.l(a(a(b, c), d)), λk.λl.l(a(a(a(b, c), d), e))))
+
+λF.λZ.λA.λB.λC.λD.@main(F, Z, λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.l(C)), λn.λl.l(D)))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(λi.λj.i(λk.λl.k(λm.λn.n(b), λm.λn.n(a(b, c))), λk.λl.l(a(a(b, c), d))), λi.λj.j(a(a(a(b, c), d), e)))

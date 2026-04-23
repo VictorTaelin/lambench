@@ -1,0 +1,44 @@
+Return the element at index I (Church nat, 0-based)
+of a Church list.
+
+A Church list folds over its elements:
+  Nil       = λc.λn.n
+  Cons(h,t) = λc.λn.c(h, t(c,n))
+So [A,B,C] = λc.λn.c(A, c(B, c(C, n))).
+
+A Church nat:
+  0 = λf.λx.x
+  1 = λf.λx.f(x)
+  2 = λf.λx.f(f(x))
+
+---
+
+λA.λB.λC.@main(λf.λx.x, λc.λn.c(A, c(B, c(C, n))))
+= λa.λb.λc.a
+
+λA.λB.λC.@main(λf.λx.f(x), λc.λn.c(A, c(B, c(C, n))))
+= λa.λb.λc.b
+
+λA.λB.λC.@main(λf.λx.f(f(x)), λc.λn.c(A, c(B, c(C, n))))
+= λa.λb.λc.c
+
+λA.λB.λC.λD.@main(λf.λx.x, λc.λn.c(A, c(B, c(C, c(D, n)))))
+= λa.λb.λc.λd.a
+
+λA.λB.λC.λD.@main(λf.λx.f(f(x)), λc.λn.c(A, c(B, c(C, c(D, n)))))
+= λa.λb.λc.λd.c
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(x))), λc.λn.c(A, c(B, c(C, c(D, n)))))
+= λa.λb.λc.λd.d
+
+λA.λB.λC.λD.λE.@main(λf.λx.f(x), λc.λn.c(A, c(B, c(C, c(D, c(E, n))))))
+= λa.λb.λc.λd.λe.b
+
+λA.λB.λC.λD.λE.@main(λf.λx.f(f(f(f(x)))), λc.λn.c(A, c(B, c(C, c(D, c(E, n))))))
+= λa.λb.λc.λd.λe.e
+
+λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(x))), λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, n)))))))
+= λa.λb.λc.λd.λe.λf.d
+
+λA.λB.λC.λD.λE.λF.λG.@main(λf.λx.f(f(f(f(f(x))))), λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, c(G, n))))))))
+= λa.λb.λc.λd.λe.λf.λg.f

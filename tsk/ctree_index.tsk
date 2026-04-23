@@ -1,0 +1,46 @@
+Label each leaf of a Church tree with its
+left-to-right index (Scott nat) using function F.
+Output is a Church tree.
+
+index(F, Node(Leaf(A), Leaf(B)))
+  = Node(Leaf(F(0,A)), Leaf(F(1,B)))
+
+A Church tree folds over its structure:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a(n,l), b(n,l))
+So Node(Leaf(A), Leaf(B)) = λn.λl.n(l(A), l(B)).
+
+A Scott nat: Z = λs.λz.z, S(n) = λs.λz.s(n).
+
+---
+
+λF.λA.@main(F, λn.λl.l(A))
+= λa.λb.λc.λd.d(a(λe.λf.f, b))
+
+λF.λA.λB.@main(F, λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.q(B))(n, l)))
+= λa.λb.λc.λd.λe.d(e(a(λf.λg.g, b)), e(a(λf.λg.f(λh.λi.i), c)))
+
+λF.λA.λB.λC.@main(F, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.q(C))(n, l)))
+= λa.λb.λc.λd.λe.λf.e(e(f(a(λg.λh.h, b)), f(a(λg.λh.g(λi.λj.j), c))), f(a(λg.λh.g(λi.λj.i(λk.λl.l)), d)))
+
+λF.λA.λB.λC.@main(F, λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.p((λr.λs.s(B))(p, q), (λr.λs.s(C))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.e(f(a(λg.λh.h, b)), e(f(a(λg.λh.g(λi.λj.j), c)), f(a(λg.λh.g(λi.λj.i(λk.λl.l)), d))))
+
+λF.λA.λB.λC.λD.@main(F, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.f(f(g(a(λh.λi.i, b)), g(a(λh.λi.h(λj.λk.k), c))), f(g(a(λh.λi.h(λj.λk.j(λl.λm.m)), d)), g(a(λh.λi.h(λj.λk.j(λl.λm.l(λn.λo.o))), e))))
+
+λF.λA.λB.λC.λD.λE.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.p((λr.λs.s(D))(p, q), (λr.λs.s(E))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(g(g(h(a(λi.λj.j, b)), h(a(λi.λj.i(λk.λl.l), c))), h(a(λi.λj.i(λk.λl.k(λm.λn.n)), d))), g(h(a(λi.λj.i(λk.λl.k(λm.λn.m(λo.λp.p))), e)), h(a(λi.λj.i(λk.λl.k(λm.λn.m(λo.λp.o(λq.λr.r)))), f))))
+
+λF.λA.λB.λC.λD.λE.λG.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.s(E))(p, q), (λr.λs.s(G))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(h(h(i(a(λj.λk.k, b)), i(a(λj.λk.j(λl.λm.m), c))), h(i(a(λj.λk.j(λl.λm.l(λn.λo.o)), d)), i(a(λj.λk.j(λl.λm.l(λn.λo.n(λp.λq.q))), e)))), h(i(a(λj.λk.j(λl.λm.l(λn.λo.n(λp.λq.p(λr.λs.s)))), f)), i(a(λj.λk.j(λl.λm.l(λn.λo.n(λp.λq.p(λr.λs.r(λt.λu.u))))), g))))
+
+λF.λA.λB.λC.λD.λE.λG.λH.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.r((λu.λv.v(E))(r, s), (λu.λv.v(G))(r, s)))(p, q), (λr.λs.s(H))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(i(i(j(a(λk.λl.l, b)), j(a(λk.λl.k(λm.λn.n), c))), i(j(a(λk.λl.k(λm.λn.m(λo.λp.p)), d)), j(a(λk.λl.k(λm.λn.m(λo.λp.o(λq.λr.r))), e)))), i(i(j(a(λk.λl.k(λm.λn.m(λo.λp.o(λq.λr.q(λs.λt.t)))), f)), j(a(λk.λl.k(λm.λn.m(λo.λp.o(λq.λr.q(λs.λt.s(λu.λv.v))))), g))), j(a(λk.λl.k(λm.λn.m(λo.λp.o(λq.λr.q(λs.λt.s(λu.λv.u(λw.λx.x)))))), h))))
+
+λF.λA.λB.λC.λD.@main(F, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.f(f(g(a(λh.λi.i, b)), g(a(λh.λi.h(λj.λk.k), c))), f(g(a(λh.λi.h(λj.λk.j(λl.λm.m)), d)), g(a(λh.λi.h(λj.λk.j(λl.λm.l(λn.λo.o))), e))))
+
+λF.λA.λB.λC.λD.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.q(D))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.f(f(f(g(a(λh.λi.i, b)), g(a(λh.λi.h(λj.λk.k), c))), g(a(λh.λi.h(λj.λk.j(λl.λm.m)), d))), g(a(λh.λi.h(λj.λk.j(λl.λm.l(λn.λo.o))), e)))
+

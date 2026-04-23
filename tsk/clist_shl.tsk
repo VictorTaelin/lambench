@@ -1,0 +1,38 @@
+Rotate a Church list left by one. [A,B,C]→[B,C,A].
+
+A Church list folds over its elements:
+  Nil       = λc.λn.n
+  Cons(h,t) = λc.λn.c(h, t(c,n))
+So [A,B,C] = λc.λn.c(A, c(B, c(C, n))).
+
+---
+
+λA.@main(λc.λn.c(A, n))
+= λa.λb.λc.b(a, c)
+
+λA.λB.@main(λc.λn.c(A, c(B, n)))
+= λa.λb.λc.λd.c(b, c(a, d))
+
+λA.λB.λC.@main(λc.λn.c(A, c(B, c(C, n))))
+= λa.λb.λc.λd.λe.d(b, d(c, d(a, e)))
+
+λA.λB.λC.λD.@main(λc.λn.c(A, c(B, c(C, c(D, n)))))
+= λa.λb.λc.λd.λe.λf.e(b, e(c, e(d, e(a, f))))
+
+λA.λB.λC.λD.λE.@main(λc.λn.c(A, c(B, c(C, c(D, c(E, n))))))
+= λa.λb.λc.λd.λe.λf.λg.f(b, f(c, f(d, f(e, f(a, g)))))
+
+λA.λB.λC.λD.λE.λF.@main(λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, n)))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(b, g(c, g(d, g(e, g(f, g(a, h))))))
+
+λA.λB.λC.λD.λE.λF.λG.@main(λc.λn.c(A, c(B, c(C, c(D, c(E, c(F, c(G, n))))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(b, h(c, h(d, h(e, h(f, h(g, h(a, i)))))))
+
+λA.λB.@main(λc.λn.c(A, c(B, n)))
+= λa.λb.λc.λd.c(b, c(a, d))
+
+λA.λB.λC.@main(λc.λn.c(A, c(B, c(C, n))))
+= λa.λb.λc.λd.λe.d(b, d(c, d(a, e)))
+
+λA.λB.λC.λD.@main(λc.λn.c(A, c(B, c(C, c(D, n)))))
+= λa.λb.λc.λd.λe.λf.e(b, e(c, e(d, e(a, f))))

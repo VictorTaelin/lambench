@@ -1,0 +1,40 @@
+Sort an N-tuple of Church booleans.
+All False values come before True.
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+Church booleans: True = λa.λb.a, False = λa.λb.b.
+
+---
+
+@main(λf.λx.f(x), λt.t(λa.λb.a))
+= λa.a(λb.λc.b)
+
+@main(λf.λx.f(x), λt.t(λa.λb.b))
+= λa.a(λb.λc.c)
+
+@main(λf.λx.f(f(x)), λt.t(λa.λb.a,λa.λb.b))
+= λa.a(λb.λc.c, λb.λc.b)
+
+@main(λf.λx.f(f(x)), λt.t(λa.λb.b,λa.λb.a))
+= λa.a(λb.λc.c, λb.λc.b)
+
+@main(λf.λx.f(f(f(x))), λt.t(λa.λb.a,λa.λb.b,λa.λb.a))
+= λa.a(λb.λc.c, λb.λc.b, λb.λc.b)
+
+@main(λf.λx.f(f(f(x))), λt.t(λa.λb.b,λa.λb.b,λa.λb.a))
+= λa.a(λb.λc.c, λb.λc.c, λb.λc.b)
+
+@main(λf.λx.f(f(f(f(x)))), λt.t(λa.λb.a,λa.λb.a,λa.λb.b,λa.λb.b))
+= λa.a(λb.λc.c, λb.λc.c, λb.λc.b, λb.λc.b)
+
+@main(λf.λx.f(f(f(f(x)))), λt.t(λa.λb.b,λa.λb.a,λa.λb.b,λa.λb.a))
+= λa.a(λb.λc.c, λb.λc.c, λb.λc.b, λb.λc.b)
+
+@main(λf.λx.f(f(f(f(f(x))))), λt.t(λa.λb.a,λa.λb.b,λa.λb.a,λa.λb.b,λa.λb.a))
+= λa.a(λb.λc.c, λb.λc.c, λb.λc.b, λb.λc.b, λb.λc.b)
+
+@main(λf.λx.f(f(f(f(f(x))))), λt.t(λa.λb.b,λa.λb.b,λa.λb.b,λa.λb.a,λa.λb.a))
+= λa.a(λb.λc.c, λb.λc.c, λb.λc.c, λb.λc.b, λb.λc.b)

@@ -1,0 +1,40 @@
+Integer square root of a Church binary. floor(√N).
+
+A Church binary natural (LSB first, no trailing zeros):
+  E    = λo.λi.λe.e
+  O(x) = λo.λi.λe.o(x(o,i,e))
+  I(x) = λo.λi.λe.i(x(o,i,e))
+0=E, 1=I(E), 2=O(I(E)), 3=I(I(E)), 5=I(O(I(E))).
+A Church Bin folds: I(O(I(E))) = λo.λi.λe.i(o(i(e))).
+
+---
+
+@main(λo.λi.λe.e)
+= λa.λb.λc.c
+
+@main(λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))
+= λa.λb.λc.b(c)
+
+@main(λo.λi.λe.o((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))
+= λa.λb.λc.b(c)
+
+@main(λo.λi.λe.i((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))
+= λa.λb.λc.b(c)
+
+@main(λo.λi.λe.o((λo.λi.λe.o((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))(o, i, e)))
+= λa.λb.λc.a(b(c))
+
+@main(λo.λi.λe.o((λo.λi.λe.o((λo.λi.λe.o((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))(o, i, e)))(o, i, e)))
+= λa.λb.λc.a(b(c))
+
+@main(λo.λi.λe.i((λo.λi.λe.o((λo.λi.λe.o((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))(o, i, e)))(o, i, e)))
+= λa.λb.λc.b(b(c))
+
+@main(λo.λi.λe.o((λo.λi.λe.i((λo.λi.λe.o((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))(o, i, e)))(o, i, e)))
+= λa.λb.λc.b(b(c))
+
+@main(λo.λi.λe.i((λo.λi.λe.i((λo.λi.λe.i((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))(o, i, e)))(o, i, e)))
+= λa.λb.λc.b(b(c))
+
+@main(λo.λi.λe.o((λo.λi.λe.o((λo.λi.λe.o((λo.λi.λe.o((λo.λi.λe.i((λo.λi.λe.e)(o, i, e)))(o, i, e)))(o, i, e)))(o, i, e)))(o, i, e)))
+= λa.λb.λc.a(a(b(c)))

@@ -1,0 +1,38 @@
+Sort a Scott list of Church booleans.
+All False values come before True.
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+Church booleans: True = λa.λb.a, False = λa.λb.b.
+
+---
+
+@main(λc.λn.c(λa.λb.a, λc.λn.n))
+= λa.λb.a(λc.λd.c, λc.λd.d)
+
+@main(λc.λn.c(λa.λb.b, λc.λn.n))
+= λa.λb.a(λc.λd.d, λc.λd.d)
+
+@main(λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.n)))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.e, λe.λf.f))
+
+@main(λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.n)))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.e, λe.λf.f))
+
+@main(λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.n))))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.e, λe.λf.e(λg.λh.g, λg.λh.h)))
+
+@main(λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.n))))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.g, λg.λh.h)))
+
+@main(λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.n)))))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.g, λg.λh.g(λi.λj.i, λi.λj.j))))
+
+@main(λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.n)))))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.g, λg.λh.g(λi.λj.i, λi.λj.j))))
+
+@main(λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.n))))))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.g, λg.λh.g(λi.λj.i, λi.λj.i(λk.λl.k, λk.λl.l)))))
+
+@main(λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.a, λc.λn.n))))))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.h, λg.λh.g(λi.λj.i, λi.λj.i(λk.λl.k, λk.λl.l)))))

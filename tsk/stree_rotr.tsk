@@ -1,0 +1,38 @@
+Rotate the leaves of a perfect Scott tree right by one.
+[A,B,C,D] → [D,A,B,C].
+
+A Scott tree:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a,b)
+
+---
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.c(a)
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.c(a)
+
+λA.λB.@main(λn.λl.n(λn.λl.l(A), λn.λl.l(B)))
+= λa.λb.λc.λd.c(λe.λf.f(b), λe.λf.f(a))
+
+λA.λB.@main(λn.λl.n(λn.λl.l(A), λn.λl.l(B)))
+= λa.λb.λc.λd.c(λe.λf.f(b), λe.λf.f(a))
+
+λA.λB.λC.λD.@main(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))))
+= λa.λb.λc.λd.λe.λf.e(λg.λh.g(λi.λj.j(d), λi.λj.j(a)), λg.λh.g(λi.λj.j(b), λi.λj.j(c)))
+
+λA.λB.λC.λD.@main(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))))
+= λa.λb.λc.λd.λe.λf.e(λg.λh.g(λi.λj.j(d), λi.λj.j(a)), λg.λh.g(λi.λj.j(b), λi.λj.j(c)))
+
+λA.λB.λC.λD.λE.λF.λG.λH.@main(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))), λn.λl.n(λn.λl.n(λn.λl.l(E), λn.λl.l(F)), λn.λl.n(λn.λl.l(G), λn.λl.l(H)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(λk.λl.k(λm.λn.m(λo.λp.p(h), λo.λp.p(a)), λm.λn.m(λo.λp.p(b), λo.λp.p(c))), λk.λl.k(λm.λn.m(λo.λp.p(d), λo.λp.p(e)), λm.λn.m(λo.λp.p(f), λo.λp.p(g))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.@main(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))), λn.λl.n(λn.λl.n(λn.λl.l(E), λn.λl.l(F)), λn.λl.n(λn.λl.l(G), λn.λl.l(H)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(λk.λl.k(λm.λn.m(λo.λp.p(h), λo.λp.p(a)), λm.λn.m(λo.λp.p(b), λo.λp.p(c))), λk.λl.k(λm.λn.m(λo.λp.p(d), λo.λp.p(e)), λm.λn.m(λo.λp.p(f), λo.λp.p(g))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.λO.λP.@main(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))), λn.λl.n(λn.λl.n(λn.λl.l(E), λn.λl.l(F)), λn.λl.n(λn.λl.l(G), λn.λl.l(H)))), λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(I), λn.λl.l(J)), λn.λl.n(λn.λl.l(K), λn.λl.l(L))), λn.λl.n(λn.λl.n(λn.λl.l(M), λn.λl.l(N)), λn.λl.n(λn.λl.l(O), λn.λl.l(P))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.λr.q(λs.λt.s(λu.λv.u(λw.λx.w(λy.λz.z(p), λy.λz.z(a)), λw.λx.w(λy.λz.z(b), λy.λz.z(c))), λu.λv.u(λw.λx.w(λy.λz.z(d), λy.λz.z(e)), λw.λx.w(λy.λz.z(f), λy.λz.z(g)))), λs.λt.s(λu.λv.u(λw.λx.w(λy.λz.z(h), λy.λz.z(i)), λw.λx.w(λy.λz.z(j), λy.λz.z(k))), λu.λv.u(λw.λx.w(λy.λz.z(l), λy.λz.z(m)), λw.λx.w(λy.λz.z(n), λy.λz.z(o)))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.λO.λP.@main(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(A), λn.λl.l(B)), λn.λl.n(λn.λl.l(C), λn.λl.l(D))), λn.λl.n(λn.λl.n(λn.λl.l(E), λn.λl.l(F)), λn.λl.n(λn.λl.l(G), λn.λl.l(H)))), λn.λl.n(λn.λl.n(λn.λl.n(λn.λl.l(I), λn.λl.l(J)), λn.λl.n(λn.λl.l(K), λn.λl.l(L))), λn.λl.n(λn.λl.n(λn.λl.l(M), λn.λl.l(N)), λn.λl.n(λn.λl.l(O), λn.λl.l(P))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.λr.q(λs.λt.s(λu.λv.u(λw.λx.w(λy.λz.z(p), λy.λz.z(a)), λw.λx.w(λy.λz.z(b), λy.λz.z(c))), λu.λv.u(λw.λx.w(λy.λz.z(d), λy.λz.z(e)), λw.λx.w(λy.λz.z(f), λy.λz.z(g)))), λs.λt.s(λu.λv.u(λw.λx.w(λy.λz.z(h), λy.λz.z(i)), λw.λx.w(λy.λz.z(j), λy.λz.z(k))), λu.λv.u(λw.λx.w(λy.λz.z(l), λy.λz.z(m)), λw.λx.w(λy.λz.z(n), λy.λz.z(o)))))

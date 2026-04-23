@@ -1,0 +1,38 @@
+Zip two N-tuples with function F.
+(A,B,C) zip (X,Y,Z) = (F(A,X), F(B,Y), F(C,Z)).
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+---
+
+λC.λA.λB.@main(λf.λx.f(x), C, λt.t(A), λt.t(B))
+= λa.λb.λc.λd.d(a(b, c))
+
+λE.λA.λB.λC.λD.@main(λf.λx.f(f(x)), E, λt.t(A,B), λt.t(C,D))
+= λa.λb.λc.λd.λe.λf.f(a(b, d), a(c, e))
+
+λG.λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(x))), G, λt.t(A,B,C), λt.t(D,E,F))
+= λa.λb.λc.λd.λe.λf.λg.λh.h(a(b, e), a(c, f), a(d, g))
+
+λI.λA.λB.λC.λD.λE.λF.λG.λH.@main(λf.λx.f(f(f(f(x)))), I, λt.t(A,B,C,D), λt.t(E,F,G,H))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.j(a(b, f), a(c, g), a(d, h), a(e, i))
+
+λK.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.@main(λf.λx.f(f(f(f(f(x))))), K, λt.t(A,B,C,D,E), λt.t(F,G,H,I,J))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.l(a(b, g), a(c, h), a(d, i), a(e, j), a(f, k))
+
+λM.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.@main(λf.λx.f(f(f(f(f(f(x)))))), M, λt.t(A,B,C,D,E,F), λt.t(G,H,I,J,K,L))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.n(a(b, h), a(c, i), a(d, j), a(e, k), a(f, l), a(g, m))
+
+λO.λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.@main(λf.λx.f(f(f(f(f(f(f(x))))))), O, λt.t(A,B,C,D,E,F,G), λt.t(H,I,J,K,L,M,N))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.p(a(b, i), a(c, j), a(d, k), a(e, l), a(f, m), a(g, n), a(h, o))
+
+λE.λA.λB.λC.λD.@main(λf.λx.f(f(x)), E, λt.t(A,B), λt.t(C,D))
+= λa.λb.λc.λd.λe.λf.f(a(b, d), a(c, e))
+
+λG.λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(x))), G, λt.t(A,B,C), λt.t(D,E,F))
+= λa.λb.λc.λd.λe.λf.λg.λh.h(a(b, e), a(c, f), a(d, g))
+
+λI.λA.λB.λC.λD.λE.λF.λG.λH.@main(λf.λx.f(f(f(f(x)))), I, λt.t(A,B,C,D), λt.t(E,F,G,H))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.j(a(b, f), a(c, g), a(d, h), a(e, i))

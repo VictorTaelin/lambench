@@ -1,0 +1,38 @@
+Right-fold an N-tuple.
+Given F, Z, and (A,B,C), return F(A, F(B, F(C, Z))).
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+---
+
+λB.λC.λA.@main(λf.λx.f(x), B, C, λt.t(A))
+= λa.λb.λc.a(c, b)
+
+λC.λD.λA.λB.@main(λf.λx.f(f(x)), C, D, λt.t(A,B))
+= λa.λb.λc.λd.a(c, a(d, b))
+
+λD.λE.λA.λB.λC.@main(λf.λx.f(f(f(x))), D, E, λt.t(A,B,C))
+= λa.λb.λc.λd.λe.a(c, a(d, a(e, b)))
+
+λE.λF.λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), E, F, λt.t(A,B,C,D))
+= λa.λb.λc.λd.λe.λf.a(c, a(d, a(e, a(f, b))))
+
+λF.λG.λA.λB.λC.λD.λE.@main(λf.λx.f(f(f(f(f(x))))), F, G, λt.t(A,B,C,D,E))
+= λa.λb.λc.λd.λe.λf.λg.a(c, a(d, a(e, a(f, a(g, b)))))
+
+λG.λH.λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(f(f(f(x)))))), G, H, λt.t(A,B,C,D,E,F))
+= λa.λb.λc.λd.λe.λf.λg.λh.a(c, a(d, a(e, a(f, a(g, a(h, b))))))
+
+λH.λI.λA.λB.λC.λD.λE.λF.λG.@main(λf.λx.f(f(f(f(f(f(f(x))))))), H, I, λt.t(A,B,C,D,E,F,G))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.a(c, a(d, a(e, a(f, a(g, a(h, a(i, b)))))))
+
+λC.λD.λA.λB.@main(λf.λx.f(f(x)), C, D, λt.t(A,B))
+= λa.λb.λc.λd.a(c, a(d, b))
+
+λD.λE.λA.λB.λC.@main(λf.λx.f(f(f(x))), D, E, λt.t(A,B,C))
+= λa.λb.λc.λd.λe.a(c, a(d, a(e, b)))
+
+λE.λF.λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), E, F, λt.t(A,B,C,D))
+= λa.λb.λc.λd.λe.λf.a(c, a(d, a(e, a(f, b))))

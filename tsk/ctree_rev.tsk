@@ -1,0 +1,39 @@
+Reverse the leaves of a perfect Church tree.
+[A,B,C,D] → [D,C,B,A].
+
+A Church tree folds over its structure:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a(n,l), b(n,l))
+So Node(Leaf(A), Leaf(B)) = λn.λl.n(l(A), l(B)).
+
+---
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.c(a)
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.c(a)
+
+λA.λB.@main(λn.λl.n(l(A), l(B)))
+= λa.λb.λc.λd.c(d(b), d(a))
+
+λA.λB.@main(λn.λl.n(l(A), l(B)))
+= λa.λb.λc.λd.c(d(b), d(a))
+
+λA.λB.λC.λD.@main(λn.λl.n(n(l(A), l(B)), n(l(C), l(D))))
+= λa.λb.λc.λd.λe.λf.e(e(f(d), f(c)), e(f(b), f(a)))
+
+λA.λB.λC.λD.@main(λn.λl.n(n(l(A), l(B)), n(l(C), l(D))))
+= λa.λb.λc.λd.λe.λf.e(e(f(d), f(c)), e(f(b), f(a)))
+
+λA.λB.λC.λD.λE.λF.λG.λH.@main(λn.λl.n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(i(i(j(h), j(g)), i(j(f), j(e))), i(i(j(d), j(c)), i(j(b), j(a))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.@main(λn.λl.n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(i(i(j(h), j(g)), i(j(f), j(e))), i(i(j(d), j(c)), i(j(b), j(a))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.λO.λP.@main(λn.λl.n(n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))), n(n(n(l(I), l(J)), n(l(K), l(L))), n(n(l(M), l(N)), n(l(O), l(P))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.λr.q(q(q(q(r(p), r(o)), q(r(n), r(m))), q(q(r(l), r(k)), q(r(j), r(i)))), q(q(q(r(h), r(g)), q(r(f), r(e))), q(q(r(d), r(c)), q(r(b), r(a)))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.λO.λP.@main(λn.λl.n(n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))), n(n(n(l(I), l(J)), n(l(K), l(L))), n(n(l(M), l(N)), n(l(O), l(P))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.λr.q(q(q(q(r(p), r(o)), q(r(n), r(m))), q(q(r(l), r(k)), q(r(j), r(i)))), q(q(q(r(h), r(g)), q(r(f), r(e))), q(q(r(d), r(c)), q(r(b), r(a)))))

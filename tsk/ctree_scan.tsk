@@ -1,0 +1,44 @@
+Exclusive prefix scan over a Church tree's leaves,
+preserving shape. Each leaf_i becomes the fold of
+all leaves before it. Output is a Church tree.
+
+scan(F, Z, Node(Leaf(A), Leaf(B)))
+  = Node(Leaf(Z), Leaf(F(Z,A)))
+
+A Church tree folds over its structure:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a(n,l), b(n,l))
+So Node(Leaf(A), Leaf(B)) = λn.λl.n(l(A), l(B)).
+
+---
+
+λF.λZ.λA.@main(F, Z, λn.λl.l(A))
+= λa.λb.λc.λd.λe.e(b)
+
+λF.λZ.λA.λB.@main(F, Z, λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.q(B))(n, l)))
+= λa.λb.λc.λd.λe.λf.e(f(b), f(a(b, c)))
+
+λF.λZ.λA.λB.λC.@main(F, Z, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.q(C))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.f(f(g(b), g(a(b, c))), g(a(a(b, c), d)))
+
+λF.λZ.λA.λB.λC.@main(F, Z, λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.p((λr.λs.s(B))(p, q), (λr.λs.s(C))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.f(g(b), f(g(a(b, c)), g(a(a(b, c), d))))
+
+λF.λZ.λA.λB.λC.λD.@main(F, Z, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(g(h(b), h(a(b, c))), g(h(a(a(b, c), d)), h(a(a(a(b, c), d), e))))
+
+λF.λZ.λA.λB.λC.λD.λE.@main(F, Z, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.p((λr.λs.s(D))(p, q), (λr.λs.s(E))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(h(h(i(b), i(a(b, c))), i(a(a(b, c), d))), h(i(a(a(a(b, c), d), e)), i(a(a(a(a(b, c), d), e), f))))
+
+λF.λZ.λA.λB.λC.λD.λE.λG.@main(F, Z, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.s(E))(p, q), (λr.λs.s(G))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(i(i(j(b), j(a(b, c))), i(j(a(a(b, c), d)), j(a(a(a(b, c), d), e)))), i(j(a(a(a(a(b, c), d), e), f)), j(a(a(a(a(a(b, c), d), e), f), g))))
+
+λF.λZ.λA.λB.λC.λD.λE.λG.λH.@main(F, Z, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.r((λu.λv.v(E))(r, s), (λu.λv.v(G))(r, s)))(p, q), (λr.λs.s(H))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(j(j(k(b), k(a(b, c))), j(k(a(a(b, c), d)), k(a(a(a(b, c), d), e)))), j(j(k(a(a(a(a(b, c), d), e), f)), k(a(a(a(a(a(b, c), d), e), f), g))), k(a(a(a(a(a(a(b, c), d), e), f), g), h))))
+
+λF.λZ.λA.λB.λC.λD.@main(F, Z, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(g(h(b), h(a(b, c))), g(h(a(a(b, c), d)), h(a(a(a(b, c), d), e))))
+
+λF.λZ.λA.λB.λC.λD.@main(F, Z, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.q(D))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.g(g(g(h(b), h(a(b, c))), h(a(a(b, c), d))), h(a(a(a(b, c), d), e)))
+

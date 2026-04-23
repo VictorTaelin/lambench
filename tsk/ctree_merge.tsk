@@ -1,0 +1,44 @@
+Merge two same-shape Church trees, combining
+corresponding leaves with function F.
+Output is a Church tree.
+
+merge(F, Node(Leaf(A),Leaf(B)), Node(Leaf(P),Leaf(Q)))
+  = Node(Leaf(F(A,P)), Leaf(F(B,Q)))
+
+A Church tree folds over its structure:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a(n,l), b(n,l))
+So Node(Leaf(A), Leaf(B)) = λn.λl.n(l(A), l(B)).
+
+---
+
+λF.λA.λP.@main(F, λn.λl.l(A), λn.λl.l(P))
+= λa.λb.λc.λd.λe.e(a(b, c))
+
+λF.λA.λB.λP.λQ.@main(F, λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.q(B))(n, l)), λn.λl.n((λp.λq.q(P))(n, l), (λp.λq.q(Q))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.f(g(a(b, d)), g(a(c, e)))
+
+λF.λA.λB.λC.λP.λQ.λR.@main(F, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.q(C))(n, l)), λn.λl.n((λp.λq.p((λr.λs.s(P))(p, q), (λr.λs.s(Q))(p, q)))(n, l), (λp.λq.q(R))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(h(i(a(b, e)), i(a(c, f))), i(a(d, g)))
+
+λF.λA.λB.λC.λP.λQ.λR.@main(F, λn.λl.n((λp.λq.q(A))(n, l), (λp.λq.p((λr.λs.s(B))(p, q), (λr.λs.s(C))(p, q)))(n, l)), λn.λl.n((λp.λq.q(P))(n, l), (λp.λq.p((λr.λs.s(Q))(p, q), (λr.λs.s(R))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.h(i(a(b, e)), h(i(a(c, f)), i(a(d, g))))
+
+λF.λA.λB.λC.λD.λP.λQ.λR.λS.@main(F, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)), λn.λl.n((λp.λq.p((λr.λs.s(P))(p, q), (λr.λs.s(Q))(p, q)))(n, l), (λp.λq.p((λr.λs.s(R))(p, q), (λr.λs.s(S))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(j(k(a(b, f)), k(a(c, g))), j(k(a(d, h)), k(a(e, i))))
+
+λF.λA.λB.λC.λD.λE.λP.λQ.λR.λS.λT.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.p((λr.λs.s(D))(p, q), (λr.λs.s(E))(p, q)))(n, l)), λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(P))(r, s), (λu.λv.v(Q))(r, s)))(p, q), (λr.λs.s(R))(p, q)))(n, l), (λp.λq.p((λr.λs.s(S))(p, q), (λr.λs.s(T))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.l(l(l(m(a(b, g)), m(a(c, h))), m(a(d, i))), l(m(a(e, j)), m(a(f, k))))
+
+λF.λA.λB.λC.λD.λE.λG.λP.λQ.λR.λS.λT.λU.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.s(E))(p, q), (λr.λs.s(G))(p, q)))(n, l)), λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(P))(r, s), (λu.λv.v(Q))(r, s)))(p, q), (λr.λs.r((λu.λv.v(R))(r, s), (λu.λv.v(S))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.s(T))(p, q), (λr.λs.s(U))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.n(n(n(o(a(b, h)), o(a(c, i))), n(o(a(d, j)), o(a(e, k)))), n(o(a(f, l)), o(a(g, m))))
+
+λF.λA.λB.λC.λD.λE.λG.λH.λP.λQ.λR.λS.λT.λU.λV.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.r((λu.λv.v(C))(r, s), (λu.λv.v(D))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.r((λu.λv.v(E))(r, s), (λu.λv.v(G))(r, s)))(p, q), (λr.λs.s(H))(p, q)))(n, l)), λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(P))(r, s), (λu.λv.v(Q))(r, s)))(p, q), (λr.λs.r((λu.λv.v(R))(r, s), (λu.λv.v(S))(r, s)))(p, q)))(n, l), (λp.λq.p((λr.λs.r((λu.λv.v(T))(r, s), (λu.λv.v(U))(r, s)))(p, q), (λr.λs.s(V))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.p(p(p(q(a(b, i)), q(a(c, j))), p(q(a(d, k)), q(a(e, l)))), p(p(q(a(f, m)), q(a(g, n))), q(a(h, o))))
+
+λF.λA.λB.λC.λD.λP.λQ.λR.λS.@main(F, λn.λl.n((λp.λq.p((λr.λs.s(A))(p, q), (λr.λs.s(B))(p, q)))(n, l), (λp.λq.p((λr.λs.s(C))(p, q), (λr.λs.s(D))(p, q)))(n, l)), λn.λl.n((λp.λq.p((λr.λs.s(P))(p, q), (λr.λs.s(Q))(p, q)))(n, l), (λp.λq.p((λr.λs.s(R))(p, q), (λr.λs.s(S))(p, q)))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(j(k(a(b, f)), k(a(c, g))), j(k(a(d, h)), k(a(e, i))))
+
+λF.λA.λB.λC.λD.λP.λQ.λR.λS.@main(F, λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(A))(r, s), (λu.λv.v(B))(r, s)))(p, q), (λr.λs.s(C))(p, q)))(n, l), (λp.λq.q(D))(n, l)), λn.λl.n((λp.λq.p((λr.λs.r((λu.λv.v(P))(r, s), (λu.λv.v(Q))(r, s)))(p, q), (λr.λs.s(R))(p, q)))(n, l), (λp.λq.q(S))(n, l)))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.j(j(j(k(a(b, f)), k(a(c, g))), k(a(d, h))), k(a(e, i)))
+

@@ -1,0 +1,1 @@
+@main = λN.λF.λX.λT.N(λg.λt.λe.g(t, λk.e(λf.λa.k(λx.f(F(a,x))))), λt.λe.t(e(λe.e(X))), T, λx.x(λx.x))

@@ -1,0 +1,40 @@
+Floor logarithm of two Church nats.
+Given N and base B (B ≥ 2, N ≥ 1),
+return floor(log_B(N)).
+
+A Church nat:
+  0 = λf.λx.x
+  1 = λf.λx.f(x)
+  2 = λf.λx.f(f(x))
+
+---
+
+@main(λf.λx.f(x), λf.λx.f(f(x)))
+= λa.λb.b
+
+@main(λf.λx.f(f(f(f(x)))), λf.λx.f(f(x)))
+= λa.λb.a(a(b))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(x)))))))), λf.λx.f(f(x)))
+= λa.λb.a(a(a(b)))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(x))))))))), λf.λx.f(f(f(x))))
+= λa.λb.a(a(b))
+
+@main(λf.λx.f(f(f(f(f(f(f(x))))))), λf.λx.f(f(f(x))))
+= λa.λb.a(b)
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(x)))))))))))))))), λf.λx.f(f(f(f(x)))))
+= λa.λb.a(a(b))
+
+@main(λf.λx.f(f(f(f(f(x))))), λf.λx.f(f(f(f(f(x))))))
+= λa.λb.a(b)
+
+@main(λf.λx.f(f(f(f(f(f(f(f(x)))))))), λf.λx.f(f(f(x))))
+= λa.λb.a(b)
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(f(f(f(f(f(f(x))))))))))))))), λf.λx.f(f(x)))
+= λa.λb.a(a(a(b)))
+
+@main(λf.λx.f(f(f(f(f(f(f(f(f(f(x)))))))))), λf.λx.f(f(f(x))))
+= λa.λb.a(a(b))

@@ -1,0 +1,41 @@
+Sort a Church list of Church booleans.
+All False values come before True.
+
+A Church list folds over its elements:
+  Nil       = λc.λn.n
+  Cons(h,t) = λc.λn.c(h, t(c,n))
+So [A,B,C] = λc.λn.c(A, c(B, c(C, n))).
+
+Church booleans: True = λa.λb.a, False = λa.λb.b.
+
+---
+
+@main(λc.λn.c(λa.λb.a, n))
+= λa.λb.a(λc.λd.c, b)
+
+@main(λc.λn.c(λa.λb.b, n))
+= λa.λb.a(λc.λd.d, b)
+
+@main(λc.λn.c(λa.λb.a, c(λa.λb.b, n)))
+= λa.λb.a(λc.λd.d, a(λc.λd.c, b))
+
+@main(λc.λn.c(λa.λb.b, c(λa.λb.a, n)))
+= λa.λb.a(λc.λd.d, a(λc.λd.c, b))
+
+@main(λc.λn.c(λa.λb.a, c(λa.λb.b, c(λa.λb.a, n))))
+= λa.λb.a(λc.λd.d, a(λc.λd.c, a(λc.λd.c, b)))
+
+@main(λc.λn.c(λa.λb.b, c(λa.λb.b, c(λa.λb.a, n))))
+= λa.λb.a(λc.λd.d, a(λc.λd.d, a(λc.λd.c, b)))
+
+@main(λc.λn.c(λa.λb.a, c(λa.λb.a, c(λa.λb.b, c(λa.λb.b, n)))))
+= λa.λb.a(λc.λd.d, a(λc.λd.d, a(λc.λd.c, a(λc.λd.c, b))))
+
+@main(λc.λn.c(λa.λb.b, c(λa.λb.a, c(λa.λb.b, c(λa.λb.a, n)))))
+= λa.λb.a(λc.λd.d, a(λc.λd.d, a(λc.λd.c, a(λc.λd.c, b))))
+
+@main(λc.λn.c(λa.λb.a, c(λa.λb.b, c(λa.λb.a, c(λa.λb.b, c(λa.λb.a, n))))))
+= λa.λb.a(λc.λd.d, a(λc.λd.d, a(λc.λd.c, a(λc.λd.c, a(λc.λd.c, b)))))
+
+@main(λc.λn.c(λa.λb.b, c(λa.λb.b, c(λa.λb.b, c(λa.λb.a, c(λa.λb.a, n))))))
+= λa.λb.a(λc.λd.d, a(λc.λd.d, a(λc.λd.d, a(λc.λd.c, a(λc.λd.c, b)))))

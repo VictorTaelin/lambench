@@ -1,0 +1,36 @@
+Euler's totient φ(N) of a Scott nat:
+count of integers 1..N coprime with N.
+
+A Scott nat: Z = λs.λz.z, S(n) = λs.λz.s(n).
+
+---
+
+@main(λs.λz.s(λs.λz.z))
+= λa.λb.a(λc.λd.d)
+
+@main(λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.a(λc.λd.d)
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a(λc.λd.c(λe.λf.f))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))
+= λa.λb.a(λc.λd.c(λe.λf.f))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))
+= λa.λb.a(λc.λd.c(λe.λf.f))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.i(λk.λl.k(λm.λn.n))))))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.j))))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.i(λk.λl.k(λm.λn.n))))))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))))))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.j))))
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))))))))
+= λa.λb.a(λc.λd.c(λe.λf.e(λg.λh.g(λi.λj.j))))

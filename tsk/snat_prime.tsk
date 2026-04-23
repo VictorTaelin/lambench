@@ -1,0 +1,38 @@
+Primality test on a Scott nat.
+Return True if N is prime, False otherwise.
+
+A Scott nat: Z = λs.λz.z, S(n) = λs.λz.s(n).
+
+Church booleans: True = λa.λb.a, False = λa.λb.b.
+
+---
+
+@main(λs.λz.z)
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.z))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.z)))
+= λa.λb.a
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))
+= λa.λb.a
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))
+= λa.λb.a
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))
+= λa.λb.a
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))))))))
+= λa.λb.b
+
+@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))))))))
+= λa.λb.b

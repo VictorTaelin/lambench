@@ -1,0 +1,60 @@
+Serialize a Church-encoded value to a flat Scott list
+of Church booleans (bits).
+
+Encoding: for N constructors, each index uses
+ceil(log2(N)) bits (MSB first), then children.
+
+A type descriptor is a Scott list of constructor specs.
+Each spec is a Scott list of fields.
+Each field (λx.x) marks a recursive position.
+In Haskell notation:
+  data Bit  = O | I             is [[],[]]
+  data Nat  = Z | S Nat         is [[],[⊤]]
+  data Bin  = E | O Bin | I Bin is [[],[⊤],[⊤]]
+  data Pair = A | B Pair Pair   is [[],[⊤,⊤]]
+Nat encodes as:
+  λc.λn.c(λc.λn.n,
+    λc.λn.c(λc.λn.c(λx.x, λc.λn.n),
+    λc.λn.n))
+
+A Church value folds recursive fields by applying
+them to all case-handlers:
+  Nat Z:       λz.λs.z
+  Nat S(S(Z)): λz.λs.s(s(z))
+
+Church booleans: True = λa.λb.a, False = λa.λb.b.
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.n)), λv0.λv1.v0)
+= λa.λb.a(λc.λd.d, λc.λd.d)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.n)), λv0.λv1.v1)
+= λa.λb.a(λc.λd.c, λc.λd.d)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λv0.λv1.v0)
+= λa.λb.a(λc.λd.d, λc.λd.d)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λv0.λv1.v1((λv0.λv1.v1((λv0.λv1.v0)(v0, v1)))(v0, v1)))
+= λa.λb.a(λc.λd.c, λc.λd.c(λe.λf.e, λe.λf.e(λg.λh.h, λg.λh.h)))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λv0.λv1.λv2.v0)
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.f, λe.λf.f))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λv0.λv1.λv2.v1((λv0.λv1.λv2.v0)(v0, v1, v2)))
+= λa.λb.a(λc.λd.d, λc.λd.c(λe.λf.e, λe.λf.e(λg.λh.h, λg.λh.g(λi.λj.j, λi.λj.j))))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λv0.λv1.λv2.v2((λv0.λv1.λv2.v1((λv0.λv1.λv2.v0)(v0, v1, v2)))(v0, v1, v2)))
+= λa.λb.a(λc.λd.c, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.h, λg.λh.g(λi.λj.i, λi.λj.i(λk.λl.l, λk.λl.k(λm.λn.n, λm.λn.n))))))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λv0.λv1.v1((λv0.λv1.v0)(v0, v1), (λv0.λv1.v0)(v0, v1)))
+= λa.λb.a(λc.λd.c, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.h, λg.λh.h)))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λv0.λv1.v1((λv0.λv1.v1((λv0.λv1.v0)(v0, v1), (λv0.λv1.v0)(v0, v1)))(v0, v1), (λv0.λv1.v0)(v0, v1)))
+= λa.λb.a(λc.λd.c, λc.λd.c(λe.λf.e, λe.λf.e(λg.λh.h, λg.λh.g(λi.λj.j, λi.λj.i(λk.λl.l, λk.λl.l)))))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n))), λv0.λv1.λv2.v2((λv0.λv1.λv2.v2((λv0.λv1.λv2.v0)(v0, v1, v2), (λv0.λv1.λv2.v1)(v0, v1, v2)))(v0, v1, v2), (λv0.λv1.λv2.v1)(v0, v1, v2)))
+= λa.λb.a(λc.λd.c, λc.λd.c(λe.λf.f, λe.λf.e(λg.λh.g, λg.λh.g(λi.λj.j, λi.λj.i(λk.λl.l, λk.λl.k(λm.λn.n, λm.λn.m(λo.λp.p, λo.λp.o(λq.λr.q, λq.λr.q(λs.λt.t, λs.λt.s(λu.λv.u, λu.λv.v))))))))))
+

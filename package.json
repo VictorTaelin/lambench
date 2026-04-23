@@ -1,0 +1,9 @@
+{
+  "name": "lambench",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "bun src/run.ts",
+    "bench": "bun src/bench.ts"
+  }
+}

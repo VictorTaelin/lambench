@@ -1,0 +1,40 @@
+Bit-reversal permutation on a perfect Church tree.
+Leaf at index i moves to bit_reverse(i).
+[A,B,C,D] → [A,C,B,D].
+
+A Church tree folds over its structure:
+  Leaf(x)   = λn.λl.l(x)
+  Node(a,b) = λn.λl.n(a(n,l), b(n,l))
+So Node(Leaf(A), Leaf(B)) = λn.λl.n(l(A), l(B)).
+
+---
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.c(a)
+
+λA.@main(λn.λl.l(A))
+= λa.λb.λc.c(a)
+
+λA.λB.@main(λn.λl.n(l(A), l(B)))
+= λa.λb.λc.λd.c(d(a), d(b))
+
+λA.λB.@main(λn.λl.n(l(A), l(B)))
+= λa.λb.λc.λd.c(d(a), d(b))
+
+λA.λB.λC.λD.@main(λn.λl.n(n(l(A), l(B)), n(l(C), l(D))))
+= λa.λb.λc.λd.λe.λf.e(e(f(a), f(c)), e(f(b), f(d)))
+
+λA.λB.λC.λD.@main(λn.λl.n(n(l(A), l(B)), n(l(C), l(D))))
+= λa.λb.λc.λd.λe.λf.e(e(f(a), f(c)), e(f(b), f(d)))
+
+λA.λB.λC.λD.λE.λF.λG.λH.@main(λn.λl.n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(i(i(j(a), j(e)), i(j(c), j(g))), i(i(j(b), j(f)), i(j(d), j(h))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.@main(λn.λl.n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.i(i(i(j(a), j(e)), i(j(c), j(g))), i(i(j(b), j(f)), i(j(d), j(h))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.λO.λP.@main(λn.λl.n(n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))), n(n(n(l(I), l(J)), n(l(K), l(L))), n(n(l(M), l(N)), n(l(O), l(P))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.λr.q(q(q(q(r(a), r(i)), q(r(e), r(m))), q(q(r(c), r(k)), q(r(g), r(o)))), q(q(q(r(b), r(j)), q(r(f), r(n))), q(q(r(d), r(l)), q(r(h), r(p)))))
+
+λA.λB.λC.λD.λE.λF.λG.λH.λI.λJ.λK.λL.λM.λN.λO.λP.@main(λn.λl.n(n(n(n(l(A), l(B)), n(l(C), l(D))), n(n(l(E), l(F)), n(l(G), l(H)))), n(n(n(l(I), l(J)), n(l(K), l(L))), n(n(l(M), l(N)), n(l(O), l(P))))))
+= λa.λb.λc.λd.λe.λf.λg.λh.λi.λj.λk.λl.λm.λn.λo.λp.λq.λr.q(q(q(q(r(a), r(i)), q(r(e), r(m))), q(q(r(c), r(k)), q(r(g), r(o)))), q(q(q(r(b), r(j)), q(r(f), r(n))), q(q(r(d), r(l)), q(r(h), r(p)))))

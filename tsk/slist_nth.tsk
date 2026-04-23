@@ -1,0 +1,38 @@
+Return the element at index I (Scott nat, 0-based)
+of a Scott list.
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+A Scott nat: Z = λs.λz.z, S(n) = λs.λz.s(n).
+
+---
+
+λA.λB.λC.@main(λs.λz.z, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.a
+
+λA.λB.λC.@main(λs.λz.s(λs.λz.z), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.b
+
+λA.λB.λC.@main(λs.λz.s(λs.λz.s(λs.λz.z)), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.n))))
+= λa.λb.λc.c
+
+λA.λB.λC.λD.@main(λs.λz.z, λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.a
+
+λA.λB.λC.λD.@main(λs.λz.s(λs.λz.s(λs.λz.z)), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.c
+
+λA.λB.λC.λD.@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.n)))))
+= λa.λb.λc.λd.d
+
+λA.λB.λC.λD.λE.@main(λs.λz.s(λs.λz.z), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.n))))))
+= λa.λb.λc.λd.λe.b
+
+λA.λB.λC.λD.λE.@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z)))), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.n))))))
+= λa.λb.λc.λd.λe.e
+
+λA.λB.λC.λD.λE.λF.@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.n)))))))
+= λa.λb.λc.λd.λe.λf.d
+
+λA.λB.λC.λD.λE.λF.λG.@main(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.s(λs.λz.z))))), λc.λn.c(A, λc.λn.c(B, λc.λn.c(C, λc.λn.c(D, λc.λn.c(E, λc.λn.c(F, λc.λn.c(G, λc.λn.n))))))))
+= λa.λb.λc.λd.λe.λf.λg.f

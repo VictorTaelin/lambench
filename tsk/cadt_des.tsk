@@ -1,0 +1,60 @@
+Deserialize a Scott list of Church booleans
+into a Church-encoded value.
+
+Encoding: for N constructors, each index uses
+ceil(log2(N)) bits (MSB first), then children.
+
+A type descriptor is a Scott list of constructor specs.
+Each spec is a Scott list of fields.
+Each field (λx.x) marks a recursive position.
+In Haskell notation:
+  data Bit  = O | I             is [[],[]]
+  data Nat  = Z | S Nat         is [[],[⊤]]
+  data Bin  = E | O Bin | I Bin is [[],[⊤],[⊤]]
+  data Pair = A | B Pair Pair   is [[],[⊤,⊤]]
+Nat encodes as:
+  λc.λn.c(λc.λn.n,
+    λc.λn.c(λc.λn.c(λx.x, λc.λn.n),
+    λc.λn.n))
+
+A Church value folds recursive fields by applying
+them to all case-handlers:
+  Nat Z:       λz.λs.z
+  Nat S(S(Z)): λz.λs.s(s(z))
+
+Church booleans: True = λa.λb.a, False = λa.λb.b.
+
+A Scott list: Nil = λc.λn.n, Cons(h,t) = λc.λn.c(h,t).
+
+---
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.n)), λc.λn.c(λa.λb.b, λc.λn.n))
+= λa.λb.a
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.n)), λc.λn.c(λa.λb.a, λc.λn.n))
+= λa.λb.b
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λc.λn.c(λa.λb.b, λc.λn.n))
+= λa.λb.a
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n)), λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.n))))
+= λa.λb.b(b(a))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.n)))
+= λa.λb.λc.a
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.n)))))
+= λa.λb.λc.b(a)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.c(λc.λn.c(λx.x, λc.λn.n), λc.λn.n))), λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.n)))))))
+= λa.λb.λc.c(b(a))
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.n))))
+= λa.λb.b(a, a)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n)), λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.n))))))
+= λa.λb.b(b(a, a), a)
+
+@main(λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.n, λc.λn.c(λc.λn.c(λx.x, λc.λn.c(λx.x, λc.λn.n)), λc.λn.n))), λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.c(λa.λb.b, λc.λn.c(λa.λb.a, λc.λn.n)))))))))))
+= λa.λb.λc.c(c(a, b), b)
+

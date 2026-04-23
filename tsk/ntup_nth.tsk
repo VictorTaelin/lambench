@@ -1,0 +1,38 @@
+Return the element at index I (Church nat, 0-based)
+of an N-tuple.
+
+An N-tuple packs N elements into one function:
+  λt.t(A,B,C,...)
+The size N is passed as a Church nat.
+
+---
+
+λA.λB.λC.@main(λf.λx.f(f(f(x))), λf.λx.x, λt.t(A,B,C))
+= λa.λb.λc.a
+
+λA.λB.λC.@main(λf.λx.f(f(f(x))), λf.λx.f(x), λt.t(A,B,C))
+= λa.λb.λc.b
+
+λA.λB.λC.@main(λf.λx.f(f(f(x))), λf.λx.f(f(x)), λt.t(A,B,C))
+= λa.λb.λc.c
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), λf.λx.x, λt.t(A,B,C,D))
+= λa.λb.λc.λd.a
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), λf.λx.f(f(x)), λt.t(A,B,C,D))
+= λa.λb.λc.λd.c
+
+λA.λB.λC.λD.@main(λf.λx.f(f(f(f(x)))), λf.λx.f(f(f(x))), λt.t(A,B,C,D))
+= λa.λb.λc.λd.d
+
+λA.λB.λC.λD.λE.@main(λf.λx.f(f(f(f(f(x))))), λf.λx.f(x), λt.t(A,B,C,D,E))
+= λa.λb.λc.λd.λe.b
+
+λA.λB.λC.λD.λE.@main(λf.λx.f(f(f(f(f(x))))), λf.λx.f(f(f(f(x)))), λt.t(A,B,C,D,E))
+= λa.λb.λc.λd.λe.e
+
+λA.λB.λC.λD.λE.λF.@main(λf.λx.f(f(f(f(f(f(x)))))), λf.λx.f(f(f(x))), λt.t(A,B,C,D,E,F))
+= λa.λb.λc.λd.λe.λf.d
+
+λA.λB.λC.λD.λE.λF.λG.@main(λf.λx.f(f(f(f(f(f(f(x))))))), λf.λx.f(f(f(f(f(x))))), λt.t(A,B,C,D,E,F,G))
+= λa.λb.λc.λd.λe.λf.λg.f
