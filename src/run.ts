@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { spawnSync } from "child_process";
 import { writeFileSync, readFileSync, mkdirSync, statSync, existsSync } from "fs";
 import { basename, join } from "path";
 import type { Task, Result } from "./types";
@@ -16,11 +16,7 @@ export function lam_run(src: string, timeout = 10_000): string {
   mkdirSync(TMP, { recursive: true });
   var file = tmp_file("run");
   writeFileSync(file, src);
-  try {
-    return execSync(`lam ${file}`, { timeout, encoding: "utf-8" }).trim();
-  } catch (e: any) {
-    throw new Error(e.stderr || e.message);
-  }
+  return run_lam([file], timeout).trim();
 }
 
 function normalize(term: string): string {
@@ -31,7 +27,44 @@ export function bin_size(src: string): number {
   mkdirSync(TMP, { recursive: true });
   var file = tmp_file("size");
   writeFileSync(file, src);
-  return execSync(`lam ${file} --to-bin`, { encoding: "utf-8" }).trim().length;
+  return run_lam([file, "--to-bin"]).trim().length;
+}
+
+function run_lam(args: string[], timeout = 10_000): string {
+  var res = spawnSync("lam", args, {
+    encoding: "utf-8",
+    timeout,
+    stdio: ["ignore", "pipe", "pipe"],
+    env: {
+      ...process.env,
+      NO_COLOR: "1",
+      FORCE_COLOR: "0",
+      TERM: "dumb",
+    },
+  });
+
+  if (res.error) {
+    throw new Error(clean_lam_error(res.error.message));
+  }
+  if (res.status !== 0) {
+    var msg = res.stderr || res.stdout || `lam exited with ${res.status}`;
+    throw new Error(clean_lam_error(msg));
+  }
+
+  return res.stdout;
+}
+
+function clean_lam_error(msg: string): string {
+  var msg = msg.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "");
+  var lines = msg.split("\n").map(line => line.trim()).filter(Boolean);
+  var hit =
+    lines.find(line => /^(RangeError|SyntaxError|TypeError|Error):/.test(line)) ??
+    lines.find(line => /^Expected /.test(line)) ??
+    lines.find(line => /^error:/.test(line)) ??
+    lines[0] ??
+    "lam failed";
+
+  return hit;
 }
 
 // Per-task score: reference bits = 0.5, each halving -> +0.25, each doubling -> x0.5
