@@ -135,7 +135,7 @@ function escape_re(text: string): string {
 
 function get_model(spec: string): EvalModel {
   var [provider, ...rest] = spec.split("/");
-  var model_id = rest.join("/");
+  var model_id = normalize_model_id(provider, rest.join("/"));
   if (!provider || !model_id) {
     throw new Error(
       "model must look like <provider>/<model>, for example openai/gpt-5.5"
@@ -166,6 +166,32 @@ function get_model(spec: string): EvalModel {
   return { spec, provider, model_id, sdk: spec };
 }
 
+function normalize_model_id(provider: string, model_id: string): string {
+  if (provider === "anthropic") {
+    return normalize_anthropic_model(model_id);
+  }
+
+  return model_id;
+}
+
+function normalize_anthropic_model(model_id: string): string {
+  var aliases: Record<string, string> = {
+    "haiku-4.5":  "claude-haiku-4-5",
+    "opus-4":     "claude-opus-4-0",
+    "opus-4.0":   "claude-opus-4-0",
+    "opus-4.1":   "claude-opus-4-1",
+    "opus-4.5":   "claude-opus-4-5",
+    "opus-4.6":   "claude-opus-4-6",
+    "opus-4.7":   "claude-opus-4-7",
+    "sonnet-4":   "claude-sonnet-4-0",
+    "sonnet-4.0": "claude-sonnet-4-0",
+    "sonnet-4.5": "claude-sonnet-4-5",
+    "sonnet-4.6": "claude-sonnet-4-6",
+  };
+
+  return aliases[model_id] ?? model_id;
+}
+
 function high_thinking_options() {
   return {
     openai: {
@@ -174,7 +200,7 @@ function high_thinking_options() {
     },
     anthropic: {
       effort: "high",
-      thinking: { type: "enabled", budgetTokens: 8000 },
+      thinking: { type: "adaptive", display: "omitted" },
     },
     google: {
       thinkingConfig: { thinkingLevel: "high", includeThoughts: false },
