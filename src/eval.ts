@@ -1,7 +1,7 @@
+import { spawn } from "child_process";
 import { generateText, type LanguageModel } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { google } from "@ai-sdk/google";
-import { openai } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { xai } from "@ai-sdk/xai";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
@@ -23,6 +23,13 @@ type EvalResult = {
   output_path?: string;
   error?: string;
   usage?: unknown;
+};
+
+type EvalModel = {
+  spec:     string;
+  provider: string;
+  model_id: string;
+  sdk?:     LanguageModel;
 };
 
 type Args = {
@@ -126,7 +133,7 @@ function escape_re(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function get_model(spec: string): LanguageModel {
+function get_model(spec: string): EvalModel {
   var [provider, ...rest] = spec.split("/");
   var model_id = rest.join("/");
   if (!provider || !model_id) {
@@ -135,20 +142,28 @@ function get_model(spec: string): LanguageModel {
     );
   }
 
-  if (provider === "openai") return openai(model_id);
-  if (provider === "anthropic") return anthropic(model_id);
-  if (provider === "google") return google(model_id);
-  if (provider === "xai") return xai(model_id);
+  if (provider === "openai") {
+    return { spec, provider, model_id };
+  }
+  if (provider === "anthropic") {
+    return { spec, provider, model_id, sdk: anthropic(model_id) };
+  }
+  if (provider === "google") {
+    return { spec, provider, model_id, sdk: google(model_id) };
+  }
+  if (provider === "xai") {
+    return { spec, provider, model_id, sdk: xai(model_id) };
+  }
   if (provider === "openrouter") {
     var openrouter = createOpenAICompatible({
       name: "openrouter",
       apiKey: process.env.OPENROUTER_API_KEY,
       baseURL: "https://openrouter.ai/api/v1",
     });
-    return openrouter(model_id);
+    return { spec, provider, model_id, sdk: openrouter(model_id) };
   }
 
-  return spec;
+  return { spec, provider, model_id, sdk: spec };
 }
 
 function high_thinking_options() {
@@ -288,9 +303,141 @@ function summarize_error(error: string): string {
   );
 }
 
+function run_process(
+  cmd: string,
+  args: string[],
+  input: string,
+  timeout_ms: number,
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    var child = spawn(cmd, args, {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    var stdout = "";
+    var stderr = "";
+    var timed_out = false;
+    var timer = setTimeout(() => {
+      timed_out = true;
+      child.kill("SIGKILL");
+    }, timeout_ms);
+
+    child.stdout.on("data", data => {
+      stdout += data.toString();
+    });
+    child.stderr.on("data", data => {
+      stderr += data.toString();
+    });
+    child.on("error", error => {
+      clearTimeout(timer);
+      reject(error);
+    });
+    child.on("close", code => {
+      clearTimeout(timer);
+      if (timed_out) {
+        reject(new Error(`${cmd} timed out after ${timeout_ms}ms`));
+      } else if (code === 0) {
+        resolve({ stdout, stderr });
+      } else {
+        reject(new Error(stderr || stdout || `${cmd} exited with ${code}`));
+      }
+    });
+
+    child.stdin.write(input);
+    child.stdin.end();
+  });
+}
+
+function codex_args(
+  model_id: string,
+  work_dir: string,
+  out_file: string,
+): string[] {
+  return [
+    "exec",
+    "--ephemeral",
+    "--ignore-user-config",
+    "--ignore-rules",
+    "--skip-git-repo-check",
+    "-C",
+    work_dir,
+    "--sandbox",
+    "read-only",
+    "-c",
+    'approval_policy="never"',
+    "-c",
+    'model_reasoning_effort="high"',
+    "--disable",
+    "shell_tool",
+    "--disable",
+    "unified_exec",
+    "--disable",
+    "apps",
+    "--disable",
+    "browser_use",
+    "--disable",
+    "computer_use",
+    "--disable",
+    "plugins",
+    "--disable",
+    "multi_agent",
+    "--disable",
+    "tool_search",
+    "--model",
+    model_id,
+    "--output-last-message",
+    out_file,
+    "-",
+  ];
+}
+
+async function generate_with_codex(
+  model: EvalModel,
+  task: Task,
+  prompt: string,
+  out_dir: string,
+): Promise<string> {
+  var work_dir = join(out_dir, "codex", task.id);
+  var out_file = join(work_dir, "last.txt");
+  mkdirSync(work_dir, { recursive: true });
+
+  var args = codex_args(model.model_id, work_dir, out_file);
+  await run_process("codex", args, prompt, 15 * 60_000);
+  return readFileSync(out_file, "utf-8");
+}
+
+async function generate_solution(
+  model: EvalModel,
+  task: Task,
+  out_dir: string,
+): Promise<{ text: string; usage?: unknown }> {
+  var prompt = task_prompt(task);
+
+  if (model.provider === "openai") {
+    var text = await generate_with_codex(model, task, prompt, out_dir);
+    return { text };
+  }
+
+  if (!model.sdk) {
+    throw new Error(`missing SDK model for ${model.spec}`);
+  }
+
+  var response = await generateText({
+    model: model.sdk,
+    prompt,
+    maxOutputTokens: 16000,
+    timeout: { totalMs: 15 * 60_000 },
+    providerOptions: high_thinking_options(),
+  });
+
+  return {
+    text: response.text,
+    usage: response.usage,
+  };
+}
+
 async function eval_task(
   task: Task,
-  model: LanguageModel,
+  model: EvalModel,
   out_dir: string,
 ): Promise<EvalResult> {
   var started = Date.now();
@@ -298,14 +445,7 @@ async function eval_task(
   var lam_path = join(out_dir, task.id + ".lam");
 
   try {
-    var response = await generateText({
-      model,
-      prompt: task_prompt(task),
-      maxOutputTokens: 16000,
-      timeout: { totalMs: 15 * 60_000 },
-      providerOptions: high_thinking_options(),
-    });
-
+    var response = await generate_solution(model, task, out_dir);
     writeFileSync(raw_path, response.text);
     var submission = extract_submission(response.text);
     writeFileSync(lam_path, submission);
