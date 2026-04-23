@@ -11,6 +11,8 @@ import type { Task } from "./types";
 import { load_tasks } from "./parse";
 import { reference_bits, run_task, task_score } from "./run";
 
+const TASK_TIMEOUT_MS = 1200 * 1000;
+
 type EvalResult = {
   id: string;
   pass: boolean;
@@ -509,13 +511,14 @@ async function generate_with_codex(
   task: Task,
   prompt: string,
   out_dir: string,
+  timeout_ms: number,
 ): Promise<string> {
   var work_dir = join(out_dir, "codex", task.id);
   var out_file = join(work_dir, "last.txt");
   mkdirSync(work_dir, { recursive: true });
 
   var args = codex_args(model.model_id, work_dir, out_file);
-  await run_process("codex", args, prompt, 15 * 60_000);
+  await run_process("codex", args, prompt, timeout_ms);
   return readFileSync(out_file, "utf-8");
 }
 
@@ -523,11 +526,19 @@ async function generate_solution(
   model: EvalModel,
   task: Task,
   out_dir: string,
+  signal: AbortSignal,
+  timeout_ms: number,
 ): Promise<{ text: string; usage?: unknown }> {
   var prompt = task_prompt(task);
 
   if (model.provider === "openai") {
-    var text = await generate_with_codex(model, task, prompt, out_dir);
+    var text = await generate_with_codex(
+      model,
+      task,
+      prompt,
+      out_dir,
+      timeout_ms,
+    );
     return { text };
   }
 
@@ -539,12 +550,91 @@ async function generate_solution(
     model: model.sdk,
     prompt,
     maxOutputTokens: 16000,
-    timeout: { totalMs: 15 * 60_000 },
+    abortSignal: signal,
+    timeout: { totalMs: timeout_ms },
     providerOptions: high_thinking_options(),
   });
 
   return {
     text: response.text,
+    usage: response.usage,
+  };
+}
+
+function timeout_result(
+  ms: number,
+  abort: AbortController,
+): { promise: Promise<never>; cancel: () => void } {
+  var timer: ReturnType<typeof setTimeout>;
+  var promise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      abort.abort();
+      reject(new Error(`task timed out after ${Math.floor(ms / 1000)}s`));
+    }, ms);
+  });
+  return {
+    promise,
+    cancel: () => clearTimeout(timer),
+  };
+}
+
+function throw_if_aborted(signal: AbortSignal) {
+  if (signal.aborted) throw new Error("task timed out");
+}
+
+function remaining_task_ms(deadline_ms: number): number {
+  var remaining_ms = deadline_ms - Date.now();
+  if (remaining_ms <= 0) throw new Error("task timed out");
+  return remaining_ms;
+}
+
+async function eval_task_body(
+  task: Task,
+  model: EvalModel,
+  out_dir: string,
+  started: number,
+  deadline_ms: number,
+  signal: AbortSignal,
+): Promise<EvalResult> {
+  var raw_path = join(out_dir, task.id + ".txt");
+  var lam_path = join(out_dir, task.id + ".lam");
+
+  var response = await generate_solution(
+    model,
+    task,
+    out_dir,
+    signal,
+    remaining_task_ms(deadline_ms),
+  );
+  throw_if_aborted(signal);
+
+  writeFileSync(raw_path, response.text);
+  var submission = extract_submission(response.text);
+  writeFileSync(lam_path, submission);
+
+  var ref = reference_bits(task.id, remaining_task_ms(deadline_ms));
+  var check = run_task(task, submission, ref, { deadline_ms });
+  var created_reference = false;
+
+  if (check.pass && ref === undefined) {
+    var ref_path = join(import.meta.dir, "..", "sol", task.id + ".lam");
+    writeFileSync(ref_path, submission.trim() + "\n");
+    ref = check.bits;
+    check.score = task_score(check.bits, ref);
+    created_reference = true;
+  }
+
+  return {
+    id: task.id,
+    pass: check.pass,
+    bits: check.bits,
+    ref_bits: ref,
+    score: check.score,
+    seconds: (Date.now() - started) / 1000,
+    created_reference,
+    solution: submission,
+    output_path: lam_path,
+    error: check.errors[0],
     usage: response.usage,
   };
 }
@@ -555,40 +645,15 @@ async function eval_task(
   out_dir: string,
 ): Promise<EvalResult> {
   var started = Date.now();
-  var raw_path = join(out_dir, task.id + ".txt");
-  var lam_path = join(out_dir, task.id + ".lam");
+  var abort = new AbortController();
 
   try {
-    var response = await generate_solution(model, task, out_dir);
-    writeFileSync(raw_path, response.text);
-    var submission = extract_submission(response.text);
-    writeFileSync(lam_path, submission);
-
-    var ref = reference_bits(task.id);
-    var check = run_task(task, submission, ref);
-    var created_reference = false;
-
-    if (check.pass && ref === undefined) {
-      var ref_path = join(import.meta.dir, "..", "sol", task.id + ".lam");
-      writeFileSync(ref_path, submission.trim() + "\n");
-      ref = check.bits;
-      check.score = task_score(check.bits, ref);
-      created_reference = true;
-    }
-
-    return {
-      id: task.id,
-      pass: check.pass,
-      bits: check.bits,
-      ref_bits: ref,
-      score: check.score,
-      seconds: (Date.now() - started) / 1000,
-      created_reference,
-      solution: submission,
-      output_path: lam_path,
-      error: check.errors[0],
-      usage: response.usage,
-    };
+    var deadline_ms = started + TASK_TIMEOUT_MS;
+    var timeout = timeout_result(TASK_TIMEOUT_MS, abort);
+    return await Promise.race([
+      eval_task_body(task, model, out_dir, started, deadline_ms, abort.signal),
+      timeout.promise,
+    ]);
   } catch (e: any) {
     return {
       id: task.id,
@@ -599,6 +664,8 @@ async function eval_task(
       created_reference: false,
       error: e?.message ?? String(e),
     };
+  } finally {
+    timeout?.cancel();
   }
 }
 

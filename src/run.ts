@@ -1,11 +1,21 @@
 import { spawnSync } from "child_process";
-import { writeFileSync, readFileSync, mkdirSync, statSync, existsSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "fs";
 import { basename, join } from "path";
 import type { Task, Result } from "./types";
 import { parse_task, load_tasks } from "./parse";
 
 var TMP = join(import.meta.dir, "..", ".tmp");
 var TMP_ID = 0;
+
+type RunTaskOptions = {
+  deadline_ms?: number;
+};
 
 function tmp_file(name: string): string {
   TMP_ID += 1;
@@ -19,15 +29,15 @@ export function lam_run(src: string, timeout = 10_000): string {
   return run_lam([file], timeout).trim();
 }
 
-function normalize(term: string): string {
-  return lam_run("@main = " + term);
+function normalize(term: string, timeout = 10_000): string {
+  return lam_run("@main = " + term, timeout);
 }
 
-export function bin_size(src: string): number {
+export function bin_size(src: string, timeout = 10_000): number {
   mkdirSync(TMP, { recursive: true });
   var file = tmp_file("size");
   writeFileSync(file, src);
-  return run_lam([file, "--to-bin"]).trim().length;
+  return run_lam([file, "--to-bin"], timeout).trim().length;
 }
 
 function run_lam(args: string[], timeout = 10_000): string {
@@ -58,7 +68,9 @@ function clean_lam_error(msg: string): string {
   var msg = msg.replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, "");
   var lines = msg.split("\n").map(line => line.trim()).filter(Boolean);
   var hit =
-    lines.find(line => /^(RangeError|SyntaxError|TypeError|Error):/.test(line)) ??
+    lines.find(line =>
+      /^(RangeError|SyntaxError|TypeError|Error):/.test(line)
+    ) ??
     lines.find(line => /^Expected /.test(line)) ??
     lines.find(line => /^error:/.test(line)) ??
     lines[0] ??
@@ -67,30 +79,55 @@ function clean_lam_error(msg: string): string {
   return hit;
 }
 
-// Per-task score: reference bits = 0.5, each halving -> +0.25, each doubling -> x0.5
+// Per-task score:
+// reference bits = 0.5, each halving -> +0.25, each doubling -> x0.5
 export function task_score(bits: number, reference_bits: number): number {
-  return bits <= reference_bits ? 1 - bits / (2 * reference_bits) : reference_bits / (2 * bits);
+  return bits <= reference_bits
+    ? 1 - bits / (2 * reference_bits)
+    : reference_bits / (2 * bits);
 }
 
-export function reference_bits(task_id: string): number | undefined {
+export function reference_bits(
+  task_id: string,
+  timeout = 10_000,
+): number | undefined {
   var path = join(import.meta.dir, "..", "sol", task_id + ".lam");
   if (!existsSync(path)) return undefined;
-  return bin_size(readFileSync(path, "utf-8").trim());
+  return bin_size(readFileSync(path, "utf-8").trim(), timeout);
 }
 
-export function run_task(task: Task, submission: string, ref_bits?: number): Result {
+function remaining_timeout(deadline_ms?: number): number {
+  if (deadline_ms === undefined) return 10_000;
+  var remaining = deadline_ms - Date.now();
+  if (remaining <= 0) throw new Error("task timed out");
+  return Math.max(1, Math.min(10_000, remaining));
+}
+
+function is_timeout_error(error: any): boolean {
+  var msg = error?.message ?? String(error);
+  return msg.includes("timed out") || msg.includes("ETIMEDOUT");
+}
+
+export function run_task(
+  task: Task,
+  submission: string,
+  ref_bits?: number,
+  options: RunTaskOptions = {},
+): Result {
   var errors: string[] = [];
 
   for (var t of task.tests) {
     try {
+      var timeout = remaining_timeout(options.deadline_ms);
       var src  = submission + "\n@_ = " + t.expr;
-      var got  = lam_run(src);
-      var want = normalize(t.want);
+      var got  = lam_run(src, timeout);
+      var want = normalize(t.want, remaining_timeout(options.deadline_ms));
       if (got !== want) {
         errors.push(`${t.expr}\nwant: ${want}\n got: ${got}`);
       }
     } catch (e: any) {
       errors.push(`${t.expr}\nerror: ${e.message}`);
+      if (is_timeout_error(e)) break;
     }
   }
 
@@ -100,11 +137,15 @@ export function run_task(task: Task, submission: string, ref_bits?: number): Res
 
   if (pass) {
     try {
-      bits  = bin_size(submission);
+      bits  = bin_size(submission, remaining_timeout(options.deadline_ms));
       score = task_score(bits, ref_bits ?? bits);
-    } catch {
+    } catch (e: any) {
       pass = false;
-      errors.push("failed to compute binary size");
+      errors.push(
+        is_timeout_error(e) ?
+          "task timed out" :
+          "failed to compute binary size"
+      );
     }
   }
 
@@ -140,7 +181,13 @@ function run_dir(path: string): Result[] {
       var sub = readFileSync(sub_path, "utf-8").trim();
     } catch {
       console.log(`- ${task.id}: no submission`);
-      results.push({ id: task.id, pass: false, bits: 0, score: 0, errors: ["no submission"] });
+      results.push({
+        id: task.id,
+        pass: false,
+        bits: 0,
+        score: 0,
+        errors: ["no submission"],
+      });
       continue;
     }
     var result = run_task(task, sub, reference_bits(task.id));
@@ -152,7 +199,8 @@ function run_dir(path: string): Result[] {
 }
 
 // CLI: bun src/run.ts <submission>
-// submission can be a directory of task-named .lam files, or one task-named .lam file.
+// submission can be a directory of task-named .lam files,
+// or one task-named .lam file.
 async function main() {
   var args = process.argv.slice(2);
   if (args.length === 0) {
@@ -168,7 +216,8 @@ async function main() {
 
   var results = run_dir(submission);
   var avg = results.reduce((s, r) => s + r.score, 0) / results.length;
-  console.log(`\n${results.filter(r => r.pass).length}/${results.length} passed`);
+  var passed = results.filter(r => r.pass).length;
+  console.log(`\n${passed}/${results.length} passed`);
   console.log(`score: ${(avg * 100).toFixed(1)}`);
 }
 
