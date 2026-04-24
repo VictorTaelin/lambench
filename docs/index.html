@@ -314,7 +314,7 @@ table.matrix tbody tr:hover td { background: var(--base2); }
 <div class="tabline">
   <button class="active" data-panel="intelligence">:intelligence</button>
   <button data-panel="speed">:speed</button>
-  <button data-panel="tersity">:tersity</button>
+  <button data-panel="elegance">:elegance</button>
   <button data-panel="problems">:problems</button>
   <button data-panel="matrix">:matrix</button>
 </div>
@@ -331,9 +331,9 @@ table.matrix tbody tr:hover td { background: var(--base2); }
   <div id="speed-buf"></div>
 </div>
 
-<!-- ═══ TERSITY PANEL ═══ -->
-<div id="tersity" class="panel">
-  <div id="tersity-buf"></div>
+<!-- ═══ ELEGANCE PANEL ═══ -->
+<div id="elegance" class="panel">
+  <div id="elegance-buf"></div>
 </div>
 
 <!-- ═══ PROBLEMS PANEL ═══ -->
@@ -451,24 +451,17 @@ function renderIntelligence() {
     D.rankings.length + ' models · 120 tasks';
 }
 
-// ── tersity ─────────────────────────────────────────────────────────
+// ── elegance ─────────────────────────────────────────────────────────
 //
-// Per-task score:   s = ref / (ref + bits)       (0 if task failed)
-//   bits = 0   -> 1.00   (impossibly terse)
-//   bits = ref -> 0.50   (exactly matches reference)
-//   bits = 2R  -> 0.33
-//   bits -> ∞  -> 0.00
+// Per-task "shorter":  s = (1 - bits/ref) * 100      (higher = shorter)
+//   s =   0%  -> matches reference
+//   s = +16%  -> 16% shorter than reference
+//   s = -30%  -> 30% longer than reference
 //
-// Model tersity = mean over all 120 tasks (failed/missing = 0).
-// "Distance from average" = model tersity − mean(model tersities).
+// Model elegance = mean of per-task shorter% over tasks the model solved.
+// Failed/missing tasks are excluded, so this is independent of intelligence.
 
-function tersityTaskScore(bits, ref) {
-  if (!ref || !(bits > 0)) return 0;
-  return ref / (ref + bits);
-}
-
-function computeTersity() {
-  // Collect the reference bits per task from whichever model reports them.
+function computeElegance() {
   var refs = {};
   D.rankings.forEach(function(r) {
     Object.keys(r.taskRefs || {}).forEach(function(tid) {
@@ -476,7 +469,6 @@ function computeTersity() {
     });
   });
 
-  var total = D.tasks.length;
   var entries = D.rankings.map(function(r) {
     var sum = 0;
     var passing = 0;
@@ -484,80 +476,89 @@ function computeTersity() {
       var ref = refs[t.id];
       var bits = (r.taskBits || {})[t.id];
       if (r.tasks[t.id] && ref && bits > 0) {
-        sum += tersityTaskScore(bits, ref);
+        sum += (1 - bits / ref);   // positive = shorter, negative = longer
         passing += 1;
       }
     });
     return {
       model: r.model,
-      tersity: sum / total,          // fraction, 0..1
+      shorter: passing ? (sum / passing) * 100 : 0,  // as percentage
       passing: passing,
-      avgRatio: passing
-        ? (function() {
-            var total_ratio = 0;
-            D.tasks.forEach(function(t) {
-              var ref = refs[t.id];
-              var bits = (r.taskBits || {})[t.id];
-              if (r.tasks[t.id] && ref && bits > 0) {
-                total_ratio += bits / ref;
-              }
-            });
-            return total_ratio / passing;
-          })()
-        : 0,
     };
   });
 
-  var mean = entries.reduce(function(s, e){ return s + e.tersity; }, 0)
-    / Math.max(entries.length, 1);
-  entries.forEach(function(e) { e.delta = e.tersity - mean; });
-  return { entries: entries, mean: mean, refs: refs };
+  var scored = entries.filter(function(e) { return e.passing > 0; });
+  var mean = scored.reduce(function(s, e){ return s + e.shorter; }, 0)
+    / Math.max(scored.length, 1);
+  entries.forEach(function(e) {
+    e.delta = e.passing > 0 ? e.shorter - mean : 0;
+  });
+  return { entries: entries, mean: mean };
 }
 
-function renderTersity() {
-  var el = document.getElementById('tersity-buf');
+function renderElegance() {
+  var el = document.getElementById('elegance-buf');
   var lines = [];
   var n = 1;
   n = renderHeader(lines, n);
 
-  lines.push(L(n++, '<span class="h2">Tersity</span>  <span class="comment">-- how compact each model\'s solutions are vs the reference</span>'));
+  lines.push(L(n++, '<span class="h2">Elegance</span>  <span class="comment">-- how much shorter than reference (higher = more elegant)</span>'));
   lines.push(L(n++, ''));
 
-  var t = computeTersity();
-  var sorted = t.entries.slice().sort(function(a, b){ return b.tersity - a.tersity; });
+  var t = computeElegance();
+  var sorted = t.entries.slice().sort(function(a, b){
+    if (a.passing === 0 && b.passing === 0) return 0;
+    if (a.passing === 0) return 1;
+    if (b.passing === 0) return -1;
+    return b.shorter - a.shorter;  // highest first
+  });
 
   var maxName = maxNameLen();
   var bw = 28;
 
+  // Bar: -40% => empty, +30% => full (clamped).
+  var barLo = -40, barHi = 30;
+
+  function fmtShorter(v) {
+    if (v >= 0) return '+' + v.toFixed(1) + '%';
+    return '−' + Math.abs(v).toFixed(1) + '%';
+  }
+
   sorted.forEach(function(e) {
     var name = fmtModel(e.model);
-    var pct = e.tersity * 100;
-    var pctStr = rpad(pct.toFixed(1) + '%', 6);
-    var deltaNum = e.delta * 100;
-    var sign = deltaNum >= 0 ? '+' : '-';
-    var deltaStr = sign + Math.abs(deltaNum).toFixed(1);
-    var deltaCls = deltaNum >= 0 ? 'ok' : 'err';
+    var valStr = e.passing
+      ? rpad(fmtShorter(e.shorter), 7)
+      : rpad('—', 7);
+    var barPct = e.passing
+      ? Math.max(0, Math.min(100, (e.shorter - barLo) * 100 / (barHi - barLo)))
+      : 0;
+    var deltaCls = e.passing
+      ? (e.delta >= 0 ? 'ok' : 'err')
+      : 'dim';
+    var deltaStr = e.passing
+      ? fmtShorter(e.delta)
+      : '  —';
     var line =
       '<span class="func">' + esc(pad(name, maxName + 1)) + '</span>' +
-      barHtml(pct, bw) + ' ' +
-      '<span class="num">' + esc(pctStr) + '</span> ' +
+      barHtml(barPct, bw) + ' ' +
+      '<span class="num">' + esc(valStr) + '</span> ' +
       '<span class="dim">(' + rpad(String(e.passing), 3) + '/' + D.tasks.length + ')</span> ' +
-      '<span class="' + deltaCls + '">Δ ' + esc(rpad(deltaStr, 5)) + '</span>';
+      '<span class="' + deltaCls + '">Δ ' + esc(rpad(deltaStr, 7)) + '</span>';
     lines.push(L(n++, line));
   });
 
   lines.push(L(n++, ''));
   lines.push(L(n++,
-    '<span class="comment">" average tersity across models: </span>' +
-    '<span class="num">' + (t.mean * 100).toFixed(1) + '%</span>' +
-    '   <span class="comment">" Δ = distance from that average</span>'
+    '<span class="comment">" mean: </span>' +
+    '<span class="num">' + fmtShorter(t.mean) + '</span>' +
+    '<span class="comment">  shorter than reference · Δ = distance from mean</span>'
   ));
 
   for (var i=0; i<8; i++) lines.push(tilde());
 
   el.innerHTML = lines.join('');
   document.getElementById('status-right').textContent =
-    sorted.length + ' models · mean ' + (t.mean * 100).toFixed(1) + '%';
+    sorted.length + ' models · mean ' + fmtShorter(t.mean) + ' shorter';
 }
 
 function renderSpeed() {
@@ -566,25 +567,28 @@ function renderSpeed() {
   var n = 1;
   n = renderHeader(lines, n);
 
-  lines.push(L(n++, '<span class="h2">Speed</span>  <span class="comment">-- avg seconds per solved task (lower is better)</span>'));
+  lines.push(L(n++, '<span class="h2">Speed</span>  <span class="comment">-- tasks solved per minute (higher = faster)</span>'));
   lines.push(L(n++, ''));
 
   var valid = D.rankings.filter(function(r){ return r.avgTime > 0; });
-  var sorted = valid.slice().sort(function(a, b){ return a.avgTime - b.avgTime; });
-  var minT = Math.min.apply(null, sorted.map(function(r){ return r.avgTime; }));
-  if (!minT) minT = 1;
+  // Compute tasks/min for each model.
+  var entries = valid.map(function(r) {
+    return { model: r.model, tpm: 60 / r.avgTime, avgTime: r.avgTime };
+  });
+  var sorted = entries.slice().sort(function(a, b){ return b.tpm - a.tpm; });
+  var maxTPM = sorted.length ? sorted[0].tpm : 1;
 
   var maxName = maxNameLen();
   var bw = 28;
 
-  sorted.forEach(function(r) {
-    var name = fmtModel(r.model);
-    // inverse proportion: 2× slower → half bar
-    var pct = (minT / r.avgTime) * 100;
+  sorted.forEach(function(e) {
+    var name = fmtModel(e.model);
+    var pct = (e.tpm / maxTPM) * 100;
     var line =
       '<span class="func">' + esc(pad(name, maxName + 1)) + '</span>' +
       barHtml(pct, bw) + ' ' +
-      '<span class="num">' + esc(rpad(r.avgTime.toFixed(1) + 's', 8)) + '</span>';
+      '<span class="num">' + esc(rpad(e.tpm.toFixed(2) + '/min', 10)) + '</span> ' +
+      '<span class="dim">(' + esc(e.avgTime.toFixed(0) + 's avg') + ')</span>';
     lines.push(L(n++, line));
   });
 
@@ -595,7 +599,7 @@ function renderSpeed() {
 
   el.innerHTML = lines.join('');
   document.getElementById('status-right').textContent =
-    sorted.length + ' models · avg time/task';
+    sorted.length + ' models · tasks/min';
 }
 
 // ── problems ────────────────────────────────────────────────────────
@@ -756,7 +760,7 @@ function closeModal() {
 var PANEL_RENDERERS = {
   intelligence: renderIntelligence,
   speed:        renderSpeed,
-  tersity:      renderTersity,
+  elegance:      renderElegance,
   problems:     renderProblems,
   matrix:       renderMatrix,
 };
