@@ -420,6 +420,10 @@ function high_thinking_options(
     moonshotai: {
       thinking: { type: "enabled" },
     },
+    deepseek: {
+      reasoningEffort: "high",
+      thinking: { type: "enabled" },
+    },
     openaiCompatible: {
       reasoningEffort: "high",
     },
@@ -657,9 +661,13 @@ async function generate_solution(
           `${anthropic_legacy_thinking_budget(model.model_id)}…`,
         );
       } else if (attempt < MAX_RETRIES) {
+        var detail = attempt_stream_error && attempt_stream_error !== e
+          ? `${format_unknown_error(e)}; stream error: ` +
+            `${format_unknown_error(attempt_stream_error)}`
+          : format_unknown_error(e);
         console.log(
           `  ↻ ${task.id} attempt ${attempt}/${MAX_RETRIES} ` +
-          `${format_unknown_error(e)}, retrying…`,
+          `${detail}, retrying…`,
         );
       }
     }
