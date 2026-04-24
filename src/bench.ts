@@ -11,7 +11,7 @@ import type { Task } from "./check";
 import { load_tasks } from "./check";
 import { REF_DIR, reference_bits, run_task, task_score } from "./check";
 
-const DEFAULT_TASK_TIMEOUT_MS = 1800 * 1000;
+const DEFAULT_TASK_TIMEOUT_MS = 3600 * 1000;
 
 type EvalResult = {
   id: string;
