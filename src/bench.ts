@@ -323,6 +323,14 @@ function get_model(spec: string): EvalModel {
     });
     return { spec, provider, model_id, sdk: deepseek(model_id) };
   }
+  if (provider === "lmstudio") {
+    var lmstudio = createOpenAICompatible({
+      name: "lmstudio",
+      apiKey: process.env.LMSTUDIO_API_KEY ?? "not-needed",
+      baseURL: process.env.LMSTUDIO_API_BASE_URL ?? "http://localhost:1234/v1",
+    });
+    return { spec, provider, model_id, sdk: lmstudio(model_id) };
+  }
   return { spec, provider, model_id, sdk: spec };
 }
 
@@ -472,6 +480,9 @@ function thinking_options(
       reasoningEffort: effort,
       thinking: { type: "enabled" },
     },
+    lmstudio: {
+      reasoningEffort: effort,
+    },
     openaiCompatible: {
       reasoningEffort: effort,
     },
@@ -490,13 +501,14 @@ function max_output_tokens(
   // maxOutputTokens: The dedicated SDKs (@ai-sdk/anthropic, @ai-sdk/google,
   // @ai-sdk/openai, @ai-sdk/xai) set model-aware defaults when maxOutputTokens
   // is omitted. But @ai-sdk/openai-compatible just sends max_tokens: undefined,
-  // which means the field is omitted and the server applies its own default —
+  // is omitted and the server applies its own default —
   // often far too low for reasoning models. We set 131072 for any provider that
   // uses createOpenAICompatible.
   var uses_openai_compatible = [
-    "openrouter", "moonshotai", "moonshot", "kimi", "deepseek",
+    "openrouter", "moonshotai", "moonshot", "kimi", "deepseek", "lmstudio",
   ].includes(model.provider);
   var has_dedicated_sdk =
+
     model.provider === "openai" ||
     model.provider === "anthropic" ||
     model.provider === "google" ||

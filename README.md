@@ -79,6 +79,7 @@ bun bench <provider/model>
 bun bench openai/gpt-5.5
 bun bench anthropic/opus-4.7
 bun bench google/gemini-3.1-pro-preview
+bun bench lmstudio/any-model-name
 
 # With options:
 bun bench openai/gpt-5.5 --filter algo_ --concurrency 8 --timeout 300
