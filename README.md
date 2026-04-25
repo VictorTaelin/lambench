@@ -2,7 +2,7 @@
 
 A benchmark of **120 pure lambda calculus** programming problems for AI models.
 
-**[→ Live results](https://victortaelin.github.io/LamBench/)**
+**[→ Live results](https://victortaelin.github.io/lambench/)**
 
 ## What is this?
 
