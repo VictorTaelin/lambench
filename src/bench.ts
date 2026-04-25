@@ -4,7 +4,7 @@ import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { xai } from "@ai-sdk/xai";
-import { mkdirSync, readFileSync, writeFileSync } from "fs";
+import { mkdirSync, readFileSync, renameSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 import type { Task } from "./check";
@@ -47,6 +47,23 @@ type Args = {
   concurrency: number;
   timeout_ms: number;
   no_reasoning: boolean;
+};
+
+type TaskProgressUpdate = {
+  attempt?: number;
+  phase?: string;
+  last_error?: string;
+};
+
+type TaskProgress = (update: TaskProgressUpdate) => void;
+
+type ActiveTask = {
+  id: string;
+  started_ms: number;
+  attempt: number;
+  phase: string;
+  last_update_ms: number;
+  last_error?: string;
 };
 
 function task_prompt(task: Task): string {
@@ -495,6 +512,8 @@ function summarize_error(error: string): string {
 
 var MAX_RETRIES = 3;
 var RETRY_BACKOFF_MS = 10_000; // 10s, 20s, 30s between retries
+var MIN_RETRY_REMAINING_MS = 30_000;
+var HEARTBEAT_MS = 60_000;
 
 // Transient finish reasons that warrant a retry (network drops, provider
 // errors, etc.) as opposed to "stop" (success) or "length" (token budget
@@ -511,6 +530,87 @@ function format_unknown_error(error: unknown): string {
   } catch {
     return String(error);
   }
+}
+
+function is_timeout_like_error(error: unknown): boolean {
+  var msg = format_unknown_error(error).toLowerCase();
+  return (
+    msg.includes("timed out") ||
+    msg.includes("timeout") ||
+    msg.includes("abort") ||
+    msg.includes("interrupted")
+  );
+}
+
+function is_transient_error(error: unknown): boolean {
+  var msg = format_unknown_error(error).toLowerCase();
+  return (
+    msg.includes("server_error") ||
+    msg.includes("internal") ||
+    msg.includes("overload") ||
+    msg.includes("unavailable") ||
+    msg.includes("rate limit") ||
+    msg.includes("429") ||
+    msg.includes("502") ||
+    msg.includes("503") ||
+    msg.includes("504") ||
+    msg.includes("econnreset") ||
+    msg.includes("econnrefused") ||
+    msg.includes("socket") ||
+    msg.includes("network") ||
+    msg.includes("fetch failed")
+  );
+}
+
+function retry_budget_remaining(deadline_ms: number): boolean {
+  return deadline_ms - Date.now() > MIN_RETRY_REMAINING_MS;
+}
+
+function should_retry_error(
+  error: unknown,
+  stream_error: unknown,
+  deadline_ms: number,
+): boolean {
+  if (!retry_budget_remaining(deadline_ms)) return false;
+  if (is_timeout_like_error(error)) return false;
+  if (stream_error !== undefined) return is_transient_error(stream_error);
+  if (format_unknown_error(error).includes("No output generated")) return false;
+  return is_transient_error(error);
+}
+
+function should_retry_empty_response(
+  finish_reason: string | undefined,
+  stream_error: unknown,
+  deadline_ms: number,
+): boolean {
+  if (!retry_budget_remaining(deadline_ms)) return false;
+  if (!is_retryable_finish(finish_reason)) return false;
+  return stream_error === undefined || is_transient_error(stream_error);
+}
+
+async function sleep_or_abort(
+  ms: number,
+  signal: AbortSignal,
+): Promise<boolean> {
+  if (ms <= 0) return !signal.aborted;
+  if (signal.aborted) return false;
+  return await new Promise(resolve => {
+    var timer: ReturnType<typeof setTimeout>;
+    var done = (ok: boolean) => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", on_abort);
+      resolve(ok);
+    };
+    var on_abort = () => done(false);
+    timer = setTimeout(() => done(true), ms);
+    signal.addEventListener("abort", on_abort, { once: true });
+  });
+}
+
+function write_file_atomic(path: string, text: string) {
+  var tmp = `${path}.${process.pid}.tmp`;
+  writeFileSync(tmp, text);
+  renameSync(tmp, path);
 }
 
 function looks_like_adaptive_thinking_error(error: unknown): boolean {
@@ -551,8 +651,9 @@ async function generate_solution(
   task: Task,
   out_dir: string,
   signal: AbortSignal,
-  timeout_ms: number,
+  deadline_ms: number,
   no_reasoning: boolean,
+  progress?: TaskProgress,
 ): Promise<{ text: string; usage?: unknown; finish_reason?: string }> {
   var prompt = task_prompt(task);
 
@@ -565,34 +666,38 @@ async function generate_solution(
       ? anthropic_initial_thinking_mode(model)
       : undefined;
 
-  var last_error: Error | undefined;
+  var last_error: unknown;
   var last_finish_reason: string | undefined;
   var last_stream_error: unknown;
 
   for (var attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     if (signal.aborted) break;
 
-    // Backoff before retries (not before the first attempt).
+    // Backoff before retries (not before the first attempt), but never sleep
+    // past the hard per-task deadline.
     if (attempt > 1) {
-      var delay_ms = RETRY_BACKOFF_MS * (attempt - 1);
+      if (!retry_budget_remaining(deadline_ms)) break;
+      var remaining_before_sleep = remaining_task_ms(deadline_ms);
+      var delay_ms = Math.min(
+        RETRY_BACKOFF_MS * (attempt - 1),
+        Math.max(0, remaining_before_sleep - MIN_RETRY_REMAINING_MS),
+      );
       console.log(
         `  ↻ ${task.id} retry ${attempt}/${MAX_RETRIES} in ${delay_ms / 1000}s…`,
       );
-      await new Promise(resolve => setTimeout(resolve, delay_ms));
-      if (signal.aborted) break;
+      var slept = await sleep_or_abort(delay_ms, signal);
+      if (!slept || signal.aborted) break;
     }
 
     try {
-      // Each attempt gets a fresh timeout_ms budget. Network errors are not
-      // the model's fault, so we don't penalize retries with a shrinking
-      // timer. The outer eval_task timeout (which accounts for MAX_RETRIES)
-      // is the ultimate safety net.
+      var remaining_ms = remaining_task_ms(deadline_ms);
+      progress?.({ attempt, phase: "generating" });
       var attempt_stream_error: unknown;
       var stream = streamText({
         model: model.sdk,
         prompt,
         abortSignal: signal,
-        timeout: { totalMs: timeout_ms },
+        timeout: { totalMs: remaining_ms },
         maxOutputTokens: max_output_tokens(model, anthropic_mode),
         providerOptions: no_reasoning
           ? {}
@@ -603,6 +708,17 @@ async function generate_solution(
         onError: ({ error }) => {
           attempt_stream_error = error;
           last_stream_error = error;
+          progress?.({
+            attempt,
+            phase: "stream-error",
+            last_error: format_unknown_error(error),
+          });
+        },
+        onChunk: ({ chunk }) => {
+          var type = typeof (chunk as any)?.type === "string"
+            ? (chunk as any).type
+            : "chunk";
+          progress?.({ attempt, phase: `stream:${type}` });
         },
       });
 
@@ -616,9 +732,9 @@ async function generate_solution(
         return { text, usage, finish_reason };
       }
 
-      // Empty text: retry if finish_reason suggests a transient failure
-      // (network drop, provider error). Don't retry on "length" (token
-      // budget exhausted) or "stop" (model chose to emit nothing).
+      // Empty text: retry only if the finish reason / stream error looks
+      // transient and there is still meaningful time left before the hard
+      // per-task deadline. Never retry length/stop; that is model behavior.
       if (!is_retryable_finish(finish_reason)) {
         return { text, usage, finish_reason };
       }
@@ -629,7 +745,9 @@ async function generate_solution(
           model,
           anthropic_mode,
           attempt_stream_error,
-        )
+        ) &&
+        attempt < MAX_RETRIES &&
+        retry_budget_remaining(deadline_ms)
       ) {
         anthropic_mode = "enabled";
         last_stream_error = undefined;
@@ -638,7 +756,17 @@ async function generate_solution(
           `retrying with legacy thinking budget ` +
           `${anthropic_legacy_thinking_budget(model.model_id)}…`,
         );
-      } else if (attempt < MAX_RETRIES) {
+        continue;
+      }
+
+      if (
+        attempt < MAX_RETRIES &&
+        should_retry_empty_response(
+          finish_reason,
+          attempt_stream_error,
+          deadline_ms,
+        )
+      ) {
         var detail = attempt_stream_error
           ? `: ${format_unknown_error(attempt_stream_error)}`
           : "";
@@ -647,11 +775,22 @@ async function generate_solution(
           `empty response (finish_reason=${finish_reason ?? "unknown"})` +
           `${detail}, retrying…`,
         );
+        continue;
       }
+      break;
     } catch (e: any) {
       last_error = e;
+      progress?.({
+        attempt,
+        phase: "error",
+        last_error: format_unknown_error(e),
+      });
       if (signal.aborted) break;
-      if (should_fallback_anthropic_thinking(model, anthropic_mode, e)) {
+      if (
+        should_fallback_anthropic_thinking(model, anthropic_mode, e) &&
+        attempt < MAX_RETRIES &&
+        retry_budget_remaining(deadline_ms)
+      ) {
         anthropic_mode = "enabled";
         last_error = undefined;
         last_stream_error = undefined;
@@ -660,7 +799,13 @@ async function generate_solution(
           `retrying with legacy thinking budget ` +
           `${anthropic_legacy_thinking_budget(model.model_id)}…`,
         );
-      } else if (attempt < MAX_RETRIES) {
+        continue;
+      }
+
+      if (
+        attempt < MAX_RETRIES &&
+        should_retry_error(e, attempt_stream_error, deadline_ms)
+      ) {
         var detail = attempt_stream_error && attempt_stream_error !== e
           ? `${format_unknown_error(e)}; stream error: ` +
             `${format_unknown_error(attempt_stream_error)}`
@@ -669,7 +814,9 @@ async function generate_solution(
           `  ↻ ${task.id} attempt ${attempt}/${MAX_RETRIES} ` +
           `${detail}, retrying…`,
         );
+        continue;
       }
+      break;
     }
   }
 
@@ -688,8 +835,9 @@ function timeout_result(
   var timer: ReturnType<typeof setTimeout>;
   var promise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
-      abort.abort();
-      reject(new Error(`task timed out after ${Math.floor(ms / 1000)}s`));
+      var error = new Error(`task timed out after ${Math.floor(ms / 1000)}s`);
+      abort.abort(error);
+      reject(error);
     }, ms);
   });
   return {
@@ -716,7 +864,7 @@ async function eval_task_body(
   deadline_ms: number,
   signal: AbortSignal,
   no_reasoning: boolean,
-  timeout_ms: number,
+  progress?: TaskProgress,
 ): Promise<EvalResult> {
   var raw_path = join(out_dir, task.id + ".txt");
   var lam_path = join(out_dir, task.id + ".lam");
@@ -726,11 +874,13 @@ async function eval_task_body(
     task,
     out_dir,
     signal,
-    timeout_ms,
+    deadline_ms,
     no_reasoning,
+    progress,
   );
   throw_if_aborted(signal);
 
+  progress?.({ phase: "extracting" });
   writeFileSync(raw_path, response.text);
   var submission = extract_submission(response.text);
 
@@ -750,6 +900,7 @@ async function eval_task_body(
 
   writeFileSync(lam_path, submission);
 
+  progress?.({ phase: "checking" });
   var check_deadline_ms = Math.min(deadline_ms, Date.now() + LAM_TIMEOUT_MS);
   var ref = reference_bits(task.id, remaining_task_ms(check_deadline_ms));
   var check = run_task(task, submission, ref, { deadline_ms: check_deadline_ms });
@@ -787,23 +938,32 @@ async function eval_task(
   timeout_ms: number,
   no_reasoning: boolean,
   parent_signal?: AbortSignal,
+  progress?: TaskProgress,
 ): Promise<EvalResult> {
   var started = Date.now();
+  progress?.({ attempt: 0, phase: "queued" });
   var abort = new AbortController();
   var abort_from_parent = () => abort.abort(parent_signal?.reason);
   if (parent_signal?.aborted) abort_from_parent();
   parent_signal?.addEventListener("abort", abort_from_parent, { once: true });
 
   try {
-    // Each retry gets a fresh timeout_ms for the API call, so the total
-    // wall-clock time can be up to MAX_RETRIES * timeout_ms + backoff.
-    // The outer deadline accounts for this so it doesn't kill retries.
-    var max_total_ms = timeout_ms * MAX_RETRIES
-      + RETRY_BACKOFF_MS * MAX_RETRIES * (MAX_RETRIES - 1) / 2;
-    var deadline_ms = started + max_total_ms;
-    var timeout = timeout_result(max_total_ms, abort);
+    // --timeout is a hard wall-clock cap for the whole task: API calls,
+    // retries, backoff, extraction, and local checking. Retries borrow from
+    // this budget; they never multiply it.
+    var deadline_ms = started + timeout_ms;
+    var timeout = timeout_result(timeout_ms, abort);
     return await Promise.race([
-      eval_task_body(task, model, out_dir, started, deadline_ms, abort.signal, no_reasoning, timeout_ms),
+      eval_task_body(
+        task,
+        model,
+        out_dir,
+        started,
+        deadline_ms,
+        abort.signal,
+        no_reasoning,
+        progress,
+      ),
       timeout.promise,
     ]);
   } catch (e: any) {
@@ -867,7 +1027,7 @@ function build_text_report(
 async function run_pool<T, R>(
   items: T[],
   concurrency: number,
-  fn: (item: T) => Promise<R>,
+  fn: (item: T, index: number) => Promise<R>,
   should_stop: () => boolean = () => false,
 ): Promise<(R | undefined)[]> {
   var results: (R | undefined)[] = new Array(items.length);
@@ -876,7 +1036,7 @@ async function run_pool<T, R>(
   async function worker() {
     while (next < items.length && !should_stop()) {
       var index = next++;
-      results[index] = await fn(items[index]);
+      results[index] = await fn(items[index], index);
     }
   }
 
@@ -893,6 +1053,7 @@ function write_eval_reports(
   filter: string | undefined,
   concurrency: number,
   total_tasks: number,
+  scheduled_tasks: number,
   started_at: Date,
   out_dir: string,
   results: EvalResult[],
@@ -904,12 +1065,13 @@ function write_eval_reports(
     results.reduce((sum, r) => sum + r.score, 0) /
     Math.max(total_tasks, 1) *
     100;
-  var complete = results.length === total_tasks;
+  var complete = results.length === scheduled_tasks;
   var report = {
     model,
     filter,
     concurrency,
     tasks: total_tasks,
+    scheduled_tasks,
     evaluated_tasks: results.length,
     complete,
     interrupted,
@@ -920,7 +1082,7 @@ function write_eval_reports(
   };
 
   var report_path = join(out_dir, "report.json");
-  writeFileSync(report_path, JSON.stringify(report, null, 2));
+  write_file_atomic(report_path, JSON.stringify(report, null, 2));
   var res_dir = join(import.meta.dir, "..", "res");
   mkdirSync(res_dir, { recursive: true });
   var text_report_path = join(
@@ -928,9 +1090,60 @@ function write_eval_reports(
     `${report_stamp(started_at)}.${safe_name(model)}.txt`,
   );
   var text_report = build_text_report(model, results, score, total_tasks);
-  writeFileSync(text_report_path, text_report);
+  write_file_atomic(text_report_path, text_report);
 
   return { report_path, text_report_path, score, pass, created_refs };
+}
+
+function write_state(
+  out_dir: string,
+  total_tasks: number,
+  completed: number,
+  active: Map<string, ActiveTask>,
+) {
+  var now = Date.now();
+  var active_tasks = [...active.values()]
+    .sort((a, b) => a.started_ms - b.started_ms)
+    .map(task => ({
+      id: task.id,
+      attempt: task.attempt,
+      phase: task.phase,
+      elapsed_s: Number(((now - task.started_ms) / 1000).toFixed(1)),
+      idle_s: Number(((now - task.last_update_ms) / 1000).toFixed(1)),
+      last_error: task.last_error,
+    }));
+  write_file_atomic(
+    join(out_dir, "state.json"),
+    JSON.stringify({
+      completed,
+      total_tasks,
+      active: active_tasks.length,
+      queued: Math.max(0, total_tasks - completed - active_tasks.length),
+      active_tasks,
+      updated_at: new Date(now).toISOString(),
+    }, null, 2),
+  );
+}
+
+function print_heartbeat(
+  total_tasks: number,
+  completed: number,
+  active: Map<string, ActiveTask>,
+) {
+  if (active.size === 0) return;
+  var now = Date.now();
+  console.log(
+    `… progress ${completed}/${total_tasks}, active ${active.size}`,
+  );
+  for (var task of [...active.values()].sort((a, b) => b.started_ms - a.started_ms)) {
+    var elapsed = ((now - task.started_ms) / 1000).toFixed(0);
+    var idle = ((now - task.last_update_ms) / 1000).toFixed(0);
+    var error = task.last_error ? ` error=${task.last_error.slice(0, 80)}` : "";
+    console.log(
+      `  · ${task.id} ${elapsed}s attempt=${task.attempt} ` +
+      `phase=${task.phase} idle=${idle}s${error}`,
+    );
+  }
 }
 
 async function main() {
@@ -960,16 +1173,24 @@ async function main() {
   console.log("");
 
   var completed = 0;
-  var results: EvalResult[] = [];
+  var result_slots: (EvalResult | undefined)[] = new Array(tasks.length);
+  var active = new Map<string, ActiveTask>();
   var abort_all = new AbortController();
   var interrupted = false;
 
+  function current_results(): EvalResult[] {
+    return result_slots.filter((r): r is EvalResult => r !== undefined);
+  }
+
   function save(interrupted_now = interrupted) {
+    var results = current_results();
+    write_state(out_dir, tasks.length, results.length, active);
     return write_eval_reports(
       args.model,
       args.filter,
       args.concurrency,
       all_tasks.length,
+      tasks.length,
       started_at,
       out_dir,
       results,
@@ -977,23 +1198,48 @@ async function main() {
     );
   }
 
-  process.once("SIGINT", () => {
+  function interrupt(reason: string) {
+    if (interrupted) return;
     interrupted = true;
-    abort_all.abort(new Error("interrupted"));
+    abort_all.abort(new Error(reason));
     var paths = save(true);
     console.log("");
-    console.log("interrupt received; stopping new tasks and saving partial report…");
+    console.log(`${reason}; stopping new tasks and saving partial report…`);
     console.log(`report: ${paths.report_path}`);
     console.log(`results: ${paths.text_report_path}`);
     console.log("press Ctrl-C again to exit immediately");
     process.once("SIGINT", () => process.exit(130));
-  });
+  }
+
+  process.once("SIGINT", () => interrupt("interrupt received"));
+  process.once("SIGTERM", () => interrupt("termination received"));
+
+  var heartbeat = setInterval(() => {
+    print_heartbeat(tasks.length, completed, active);
+    write_state(out_dir, tasks.length, completed, active);
+  }, HEARTBEAT_MS);
 
   await run_pool(
     tasks,
     args.concurrency,
-    async task => {
+    async (task, index) => {
       console.log(`→ ${task.id}`);
+      var started_ms = Date.now();
+      active.set(task.id, {
+        id: task.id,
+        started_ms,
+        attempt: 0,
+        phase: "starting",
+        last_update_ms: started_ms,
+      });
+      var progress: TaskProgress = update => {
+        var state = active.get(task.id);
+        if (!state) return;
+        if (update.attempt !== undefined) state.attempt = update.attempt;
+        if (update.phase !== undefined) state.phase = update.phase;
+        if (update.last_error !== undefined) state.last_error = update.last_error;
+        state.last_update_ms = Date.now();
+      };
       var result = await eval_task(
         task,
         model,
@@ -1001,9 +1247,11 @@ async function main() {
         args.timeout_ms,
         args.no_reasoning,
         abort_all.signal,
+        progress,
       );
+      active.delete(task.id);
       completed += 1;
-      results.push(result);
+      result_slots[index] = result;
       console.log(`${format_line(result)} (${completed}/${tasks.length})`);
       save();
       return result;
@@ -1011,6 +1259,8 @@ async function main() {
     () => abort_all.signal.aborted,
   );
 
+  clearInterval(heartbeat);
+  var results = current_results();
   var paths = save(interrupted);
 
   console.log("");
